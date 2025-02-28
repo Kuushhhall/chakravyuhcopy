@@ -11,6 +11,9 @@ import ExamSelect from "./pages/ExamSelect";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Study from "./pages/Study";
+import SubjectDetail from "./pages/SubjectDetail";
+import Assessment from "./pages/Assessment";
+import ConceptMapPage from "./pages/ConceptMapPage";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +31,9 @@ const App = () => (
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/study" element={<Study />} />
+          <Route path="/subject/:subjectId" element={<SubjectDetail />} />
+          <Route path="/assessment" element={<Assessment />} />
+          <Route path="/concept-map" element={<ConceptMapPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
