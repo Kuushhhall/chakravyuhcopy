@@ -5,7 +5,7 @@ import { StudyPlanItem } from "@/components/StudyPlanItem";
 import { Card, CardContent } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui-custom/Button";
 import { Progress } from "@/components/ui-custom/Progress";
-import { BadgeCheck, Book, Calendar, ChartLineUp, Clock, Filter, LucideIcon, Target } from "lucide-react";
+import { BadgeCheck, Book, Calendar, LineChart, Clock, Filter, LucideIcon, Target } from "lucide-react";
 
 // Mock data for subjects
 const subjectsData = [
@@ -199,7 +199,7 @@ export function SubjectDashboard() {
           title="Mastery Level" 
           value={studyStats.mastery} 
           suffix="%"
-          icon={ChartLineUp} 
+          icon={LineChart} 
           description="Increasing steadily" 
         />
       </div>
