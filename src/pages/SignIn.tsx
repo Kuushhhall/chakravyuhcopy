@@ -6,7 +6,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui-custom/Button";
 import { SignInOption } from "@/components/SignInOptions";
 import { Link } from "react-router-dom";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, Github, Phone, AlertTriangle } from "lucide-react";
 
@@ -15,13 +15,20 @@ const SignIn = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    // Check if user is already signed in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        navigate('/dashboard');
+      }
+    });
+    
     // Show a toast if Supabase is not configured
     if (!isSupabaseConfigured) {
       toast.error("Supabase configuration is missing. Auth features will not work.", {
         duration: 5000,
       });
     }
-  }, []);
+  }, [navigate]);
   
   const handleGoogleSignIn = async () => {
     if (!isSupabaseConfigured) {

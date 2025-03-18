@@ -6,8 +6,9 @@ import { Button } from "@/components/ui-custom/Button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
 
 const PhoneSignIn = () => {
   const [phone, setPhone] = useState("");
@@ -19,6 +20,13 @@ const PhoneSignIn = () => {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!isSupabaseConfigured) {
+      setOtpSent(true);
+      toast.success("Demo mode: OTP sent to your phone number!");
+      setLoading(false);
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -40,6 +48,13 @@ const PhoneSignIn = () => {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!isSupabaseConfigured) {
+      toast.success("Demo mode: Signed in successfully!");
+      setTimeout(() => navigate("/dashboard"), 1000);
+      setLoading(false);
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.verifyOtp({
@@ -75,6 +90,15 @@ const PhoneSignIn = () => {
                 : "Enter your phone number to receive a verification code"}
             </p>
           </div>
+
+          {!isSupabaseConfigured && (
+            <div className="mb-6 p-3 border border-yellow-300 bg-yellow-50 rounded-md flex items-center gap-2 text-sm text-yellow-800">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <p>
+                Authentication is in demo mode. You can fill in any details to proceed.
+              </p>
+            </div>
+          )}
 
           {!otpSent ? (
             <form onSubmit={handleSendOtp} className="space-y-6">
