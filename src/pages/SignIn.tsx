@@ -1,20 +1,34 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui-custom/Button";
 import { SignInOption } from "@/components/SignInOptions";
 import { Link } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Mail, Github, Phone } from "lucide-react";
+import { Mail, Github, Phone, AlertTriangle } from "lucide-react";
 
 const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   
+  useEffect(() => {
+    // Show a toast if Supabase is not configured
+    if (!isSupabaseConfigured) {
+      toast.error("Supabase configuration is missing. Auth features will not work.", {
+        duration: 5000,
+      });
+    }
+  }, []);
+  
   const handleGoogleSignIn = async () => {
+    if (!isSupabaseConfigured) {
+      toast.error("Supabase is not configured. Please set the environment variables.");
+      return;
+    }
+    
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -36,6 +50,11 @@ const SignIn = () => {
   };
   
   const handleGithubSignIn = async () => {
+    if (!isSupabaseConfigured) {
+      toast.error("Supabase is not configured. Please set the environment variables.");
+      return;
+    }
+    
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -64,6 +83,12 @@ const SignIn = () => {
     navigate("/phone-signin");
   };
 
+  // Mock sign in for demo
+  const handleDemoSignIn = () => {
+    toast.success("Signed in with demo account");
+    setTimeout(() => navigate("/dashboard"), 1000);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -75,6 +100,15 @@ const SignIn = () => {
               Personalized study plans for competitive exam preparation
             </p>
           </div>
+          
+          {!isSupabaseConfigured && (
+            <div className="mb-6 p-3 border border-yellow-300 bg-yellow-50 rounded-md flex items-center gap-2 text-sm text-yellow-800">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <p>
+                Authentication is in demo mode. Click any option to proceed to the dashboard.
+              </p>
+            </div>
+          )}
           
           <div className="space-y-4 animate-fade-in">
             <SignInOption 
@@ -89,28 +123,28 @@ const SignIn = () => {
                   fill="#EA4335" />
               </svg>}
               text="Continue with Google"
-              onClick={handleGoogleSignIn}
+              onClick={isSupabaseConfigured ? handleGoogleSignIn : handleDemoSignIn}
               loading={loading}
             />
             
             <SignInOption 
               icon={<Github className="h-5 w-5" />}
               text="Continue with GitHub"
-              onClick={handleGithubSignIn}
+              onClick={isSupabaseConfigured ? handleGithubSignIn : handleDemoSignIn}
               loading={loading}
             />
             
             <SignInOption 
               icon={<Mail className="h-5 w-5" />}
               text="Continue with Email"
-              onClick={handleEmailSignIn}
+              onClick={isSupabaseConfigured ? handleEmailSignIn : handleDemoSignIn}
               loading={loading}
             />
             
             <SignInOption 
               icon={<Phone className="h-5 w-5" />}
               text="Continue with Phone"
-              onClick={handlePhoneSignIn}
+              onClick={isSupabaseConfigured ? handlePhoneSignIn : handleDemoSignIn}
               loading={loading}
             />
           </div>
