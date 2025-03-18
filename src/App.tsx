@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
+import EmailSignIn from "./pages/EmailSignIn";
+import PhoneSignIn from "./pages/PhoneSignIn";
 import ExamSelect from "./pages/ExamSelect";
 import Dashboard from "./pages/Dashboard";
 import Study from "./pages/Study";
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignIn />} />
+          <Route path="/email-signin" element={<EmailSignIn />} />
+          <Route path="/phone-signin" element={<PhoneSignIn />} />
           <Route path="/exam-select" element={<ExamSelect />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/study" element={<Study />} />
