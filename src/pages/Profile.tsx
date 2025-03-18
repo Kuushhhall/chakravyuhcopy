@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -10,13 +9,38 @@ import { useToast } from "@/hooks/use-toast";
 import { Award, BookOpen, Clock, Edit, FileEdit, LineChart, LogOut, Mail, Phone, Settings, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+interface UserData {
+  name: string;
+  email: string;
+  phone: string;
+  targetExam: string;
+  targetYear: string;
+  profileImage: string;
+}
+
+interface StatsData {
+  totalStudyHours: number;
+  questionsAnswered: number;
+  averageScore: number;
+  streak: number;
+}
+
+interface ActivityItem {
+  type: "study" | "test";
+  subject: string;
+  topic: string;
+  time: string;
+  duration?: string;
+  score?: string;
+}
+
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   
   // Mock user data
-  const [userData, setUserData] = useState({
+  const [userData, setUserData] = useState<UserData>({
     name: "Rahul Sharma",
     email: "rahul.sharma@example.com",
     phone: "+91 98765 43210",
@@ -26,7 +50,7 @@ const Profile = () => {
   });
   
   // Mock stats data
-  const stats = {
+  const stats: StatsData = {
     totalStudyHours: 120,
     questionsAnswered: 1450,
     averageScore: 72,
@@ -34,7 +58,7 @@ const Profile = () => {
   };
   
   // Mock recent activities
-  const recentActivities = [
+  const recentActivities: ActivityItem[] = [
     { type: "study", subject: "Physics", topic: "Mechanics", time: "2 hours ago", duration: "45 minutes" },
     { type: "test", subject: "Chemistry", topic: "Organic Chemistry Test", time: "Yesterday", score: "85%" },
     { type: "study", subject: "Mathematics", topic: "Calculus", time: "Yesterday", duration: "60 minutes" },
@@ -95,7 +119,7 @@ const Profile = () => {
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center mb-6">
                     <div className="relative mb-4">
-                      <AvatarContainer size="xl" className="h-24 w-24">
+                      <AvatarContainer size="lg" className="h-24 w-24">
                         <AvatarImage src={userData.profileImage} alt={userData.name} />
                         <AvatarFallback>{userData.name.charAt(0)}</AvatarFallback>
                       </AvatarContainer>
