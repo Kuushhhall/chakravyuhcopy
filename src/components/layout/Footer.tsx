@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container py-12 md:py-16">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-4">
-            <h3 className="text-lg font-bold">StudyAI</h3>
+            <h3 className="text-lg font-bold">Chakravyuh</h3>
             <p className="text-sm text-muted-foreground">
               Your personal AI tutor for competitive exam preparation
             </p>
@@ -79,7 +79,7 @@ const Footer = () => {
         
         <div className="mt-12 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} StudyAI. All rights reserved.
+            © {new Date().getFullYear()} Chakravyuh. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <Link to="#" className="text-muted-foreground hover:text-foreground">

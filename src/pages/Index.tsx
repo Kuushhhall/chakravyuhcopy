@@ -133,7 +133,7 @@ const Index = () => {
               <Card className="bg-white border-none shadow-sm">
                 <CardContent className="p-6">
                   <p className="mb-4 text-muted-foreground italic">
-                    "StudyAI helped me identify my weak areas in Physics. After just 3 months, my scores improved by 40%. The personalized study plan was a game-changer."
+                    "Chakravyuh helped me identify my weak areas in Physics. After just 3 months, my scores improved by 40%. The personalized study plan was a game-changer."
                   </p>
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -192,7 +192,7 @@ const Index = () => {
                 Ready to Transform Your Learning Experience?
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Start your personalized learning journey today with StudyAI and experience the future of education.
+                Start your personalized learning journey today with Chakravyuh and experience the future of education.
               </p>
               <Button size="lg" asChild className="animate-pulse-soft">
                 <Link to="/signup">Get Started For Free</Link>
