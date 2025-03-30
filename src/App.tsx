@@ -26,6 +26,17 @@ import ResourceLibrary from "./pages/ResourceLibrary";
 import About from "./pages/About"; 
 import Explore from "./pages/Explore";
 
+// New pages
+import Blog from "./pages/Blog";
+import HelpCenter from "./pages/HelpCenter";
+import Testimonials from "./pages/Testimonials";
+import Company from "./pages/Company";
+import Careers from "./pages/Careers";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Cookies from "./pages/Cookies";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -59,6 +70,22 @@ const App = () => (
             <Route path="/test-results/:testId" element={<TestResults />} />
             <Route path="/study-schedule" element={<StudySchedule />} />
             <Route path="/resources" element={<ResourceLibrary />} />
+            
+            {/* Resource pages */}
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/help" element={<HelpCenter />} />
+            <Route path="/testimonials" element={<Testimonials />} />
+            
+            {/* Company pages */}
+            <Route path="/company" element={<Company />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/contact" element={<Contact />} />
+            
+            {/* Legal pages */}
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/cookies" element={<Cookies />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>
