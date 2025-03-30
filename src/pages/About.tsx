@@ -47,7 +47,7 @@ const About = () => {
                 
                 <h2 className="text-2xl font-bold mb-4">Our Story</h2>
                 <p className="mb-6">
-                  Chakravyuh was founded by a team of educators, AI researchers, and former JEE toppers who understood the challenges students face. By combining pedagogical expertise with cutting-edge AI technology, we've created a learning platform that understands how you learn and adapts to help you succeed.
+                  Chakravyuh was founded by Kushal Jain, who understood the challenges students face in JEE preparation. By combining pedagogical expertise with cutting-edge AI technology, we've created a learning platform that understands how you learn and adapts to help you succeed.
                 </p>
                 
                 <h2 className="text-2xl font-bold mb-4">What's with the name?</h2>
@@ -58,31 +58,16 @@ const About = () => {
             </CardContent>
           </Card>
           
-          <h2 className="text-2xl font-bold mb-6 text-center">Our Team</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            <div className="text-center">
+          <h2 className="text-2xl font-bold mb-6 text-center">Founder</h2>
+          <div className="flex justify-center mb-12">
+            <div className="text-center max-w-xs">
               <AvatarContainer size="lg" className="mx-auto mb-4">
-                <AvatarImage src="https://placekitten.com/300/300" alt="Team Member" />
-                <AvatarFallback>AR</AvatarFallback>
+                <AvatarImage src="https://placekitten.com/300/300" alt="Kushal Jain" />
+                <AvatarFallback>KJ</AvatarFallback>
               </AvatarContainer>
-              <h3 className="font-bold text-lg">Arjun Reddy</h3>
+              <h3 className="font-bold text-lg">Kushal Jain</h3>
               <p className="text-muted-foreground">Founder & CEO</p>
-            </div>
-            <div className="text-center">
-              <AvatarContainer size="lg" className="mx-auto mb-4">
-                <AvatarImage src="https://placekitten.com/301/301" alt="Team Member" />
-                <AvatarFallback>PP</AvatarFallback>
-              </AvatarContainer>
-              <h3 className="font-bold text-lg">Priya Patel</h3>
-              <p className="text-muted-foreground">Chief Learning Officer</p>
-            </div>
-            <div className="text-center">
-              <AvatarContainer size="lg" className="mx-auto mb-4">
-                <AvatarImage src="https://placekitten.com/302/302" alt="Team Member" />
-                <AvatarFallback>RK</AvatarFallback>
-              </AvatarContainer>
-              <h3 className="font-bold text-lg">Rahul Kumar</h3>
-              <p className="text-muted-foreground">Head of AI Research</p>
+              <p className="mt-2 text-sm">Passionate about revolutionizing education through AI to make quality learning accessible to all students preparing for competitive exams.</p>
             </div>
           </div>
         </div>
