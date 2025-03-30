@@ -11,6 +11,7 @@ import SignIn from "./pages/SignIn";
 import EmailSignIn from "./pages/EmailSignIn";
 import PhoneSignIn from "./pages/PhoneSignIn";
 import ExamSelect from "./pages/ExamSelect";
+import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Study from "./pages/Study";
 import SubjectDetail from "./pages/SubjectDetail";
@@ -22,6 +23,8 @@ import PracticeTests from "./pages/PracticeTests";
 import TestResults from "./pages/TestResults";
 import StudySchedule from "./pages/StudySchedule";
 import ResourceLibrary from "./pages/ResourceLibrary";
+import About from "./pages/About"; 
+import Explore from "./pages/Explore";
 
 const queryClient = new QueryClient();
 
@@ -40,8 +43,11 @@ const App = () => (
             <Route path="/email-signin" element={<EmailSignIn />} />
             <Route path="/phone-signin" element={<PhoneSignIn />} />
             
-            {/* Unprotected routes - no login required */}
+            {/* Content routes - no login required */}
+            <Route path="/about" element={<About />} />
+            <Route path="/explore" element={<Explore />} />
             <Route path="/exam-select" element={<ExamSelect />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/study" element={<Study />} />
             <Route path="/subject/:subjectId" element={<SubjectDetail />} />

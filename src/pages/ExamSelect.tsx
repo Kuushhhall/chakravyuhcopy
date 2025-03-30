@@ -4,11 +4,17 @@ import Footer from "@/components/layout/Footer";
 import { ExamCard } from "@/components/ExamCard";
 import { useNavigate } from "react-router-dom";
 import { GraduationCap, Heart, LineChart, Building, Cog } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const ExamSelect = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const handleExamSelect = (examType: string) => {
+    toast({
+      title: `${examType.toUpperCase()} selected`,
+      description: "Redirecting to personalization...",
+    });
     navigate(`/onboarding?exam=${examType}`);
   };
 
