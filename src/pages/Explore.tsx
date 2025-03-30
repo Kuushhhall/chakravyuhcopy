@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -10,11 +9,23 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Book, BookOpen, Users, Star, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// Define course type
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  students: number;
+  rating: number;
+  topics: string[];
+  imageUrl: string;
+  category: string;
+}
+
 const Explore = () => {
   const [searchQuery, setSearchQuery] = useState("");
   
   // Mock data for courses
-  const courses = [
+  const courses: Course[] = [
     {
       id: 1,
       title: "Physics Master Course",
@@ -78,7 +89,7 @@ const Explore = () => {
   ];
   
   // Filter courses based on search query and selected tab
-  const filterCourses = (courses: typeof courses, tab: string, query: string) => {
+  const filterCourses = (courses: Course[], tab: string, query: string) => {
     return courses.filter(course => {
       const matchesCategory = tab === "all" || course.category === tab;
       const matchesSearch = query === "" || 

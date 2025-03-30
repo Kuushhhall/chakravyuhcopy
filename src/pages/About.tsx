@@ -61,7 +61,7 @@ const About = () => {
           <h2 className="text-2xl font-bold mb-6 text-center">Our Team</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             <div className="text-center">
-              <AvatarContainer size="xl" className="mx-auto mb-4">
+              <AvatarContainer size="lg" className="mx-auto mb-4">
                 <AvatarImage src="https://placekitten.com/300/300" alt="Team Member" />
                 <AvatarFallback>AR</AvatarFallback>
               </AvatarContainer>
@@ -69,7 +69,7 @@ const About = () => {
               <p className="text-muted-foreground">Founder & CEO</p>
             </div>
             <div className="text-center">
-              <AvatarContainer size="xl" className="mx-auto mb-4">
+              <AvatarContainer size="lg" className="mx-auto mb-4">
                 <AvatarImage src="https://placekitten.com/301/301" alt="Team Member" />
                 <AvatarFallback>PP</AvatarFallback>
               </AvatarContainer>
@@ -77,7 +77,7 @@ const About = () => {
               <p className="text-muted-foreground">Chief Learning Officer</p>
             </div>
             <div className="text-center">
-              <AvatarContainer size="xl" className="mx-auto mb-4">
+              <AvatarContainer size="lg" className="mx-auto mb-4">
                 <AvatarImage src="https://placekitten.com/302/302" alt="Team Member" />
                 <AvatarFallback>RK</AvatarFallback>
               </AvatarContainer>
