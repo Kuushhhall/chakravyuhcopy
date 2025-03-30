@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui-custom/Button";
 import { Progress } from "@/components/ui-custom/Progress";
 import { AvatarContainer, AvatarImage, AvatarFallback } from "@/components/ui-custom/Avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Award, BookOpen, Clock, Edit, FileEdit, LineChart, LogOut, Mail, Phone, Settings, User } from "lucide-react";
+import { Award, BookOpen, Clock, Edit, FileEdit, LineChart, LogOut, Mail, Phone, Settings, User, Beaker, GraduationCap, Sigma } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "@/components/ui-custom/Modal";
 import { StudentAvatarSelector, AvatarOption } from "@/components/StudentAvatarSelector";

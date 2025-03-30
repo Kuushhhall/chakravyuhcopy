@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui-custom/Button";
 import { AvatarContainer, AvatarImage, AvatarFallback } from "@/components/ui-custom/Avatar";
-import { Check, User, GraduationCap, Brain, Lightbulb, Atom, Flask, PenTool } from "lucide-react";
+import { Check, User, GraduationCap, Brain, Lightbulb, Atom, PenTool, Beaker } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type AvatarStyle = "flat" | "3d" | "photo";
@@ -31,7 +31,7 @@ const avatarOptions: AvatarOption[] = [
   { id: "flat-3", type: "flat", icon: <Brain className="h-6 w-6" />, color: "bg-amber-100 text-amber-600", name: "Thinker" },
   { id: "flat-4", type: "flat", icon: <Lightbulb className="h-6 w-6" />, color: "bg-green-100 text-green-600", name: "Bright" },
   { id: "flat-5", type: "flat", icon: <Atom className="h-6 w-6" />, color: "bg-red-100 text-red-600", name: "Scientist" },
-  { id: "flat-6", type: "flat", icon: <Flask className="h-6 w-6" />, color: "bg-cyan-100 text-cyan-600", name: "Chemist" },
+  { id: "flat-6", type: "flat", icon: <Beaker className="h-6 w-6" />, color: "bg-cyan-100 text-cyan-600", name: "Chemist" },
   { id: "flat-7", type: "flat", icon: <PenTool className="h-6 w-6" />, color: "bg-indigo-100 text-indigo-600", name: "Artist" },
 
   // 3D rendered avatars

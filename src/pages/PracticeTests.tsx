@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -16,7 +15,7 @@ import {
   FileCheck, 
   FileClock, 
   Filter, 
-  FlaskConical, 
+  Beaker, 
   GraduationCap, 
   LayoutGrid, 
   LineChart, 
@@ -42,7 +41,7 @@ const PracticeTests = () => {
       id: "jee-physics-1", 
       title: "JEE Physics Mock Test 1", 
       subject: "Physics", 
-      icon: FlaskConical,
+      icon: Beaker,
       questions: 30, 
       time: 45, 
       difficulty: "medium", 
@@ -54,7 +53,7 @@ const PracticeTests = () => {
       id: "jee-chemistry-1", 
       title: "JEE Chemistry Mock Test 1", 
       subject: "Chemistry", 
-      icon: FlaskConical,
+      icon: Beaker,
       questions: 25, 
       time: 40, 
       difficulty: "hard", 
@@ -78,7 +77,7 @@ const PracticeTests = () => {
       id: "jee-physics-2", 
       title: "JEE Physics Practice Test", 
       subject: "Physics", 
-      icon: FlaskConical,
+      icon: Beaker,
       questions: 15, 
       time: 25, 
       difficulty: "easy", 
@@ -102,7 +101,7 @@ const PracticeTests = () => {
       id: "jee-chemistry-2", 
       title: "JEE Chemistry Practice Test", 
       subject: "Chemistry", 
-      icon: FlaskConical,
+      icon: Beaker,
       questions: 20, 
       time: 30, 
       difficulty: "medium", 
@@ -126,7 +125,7 @@ const PracticeTests = () => {
       id: "jee-physics-weekly", 
       title: "Weekly Physics Challenge", 
       subject: "Physics", 
-      icon: FlaskConical,
+      icon: Beaker,
       questions: 10, 
       time: 15, 
       difficulty: "medium", 
