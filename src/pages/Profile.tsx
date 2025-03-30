@@ -8,6 +8,8 @@ import { AvatarContainer, AvatarImage, AvatarFallback } from "@/components/ui-cu
 import { useToast } from "@/hooks/use-toast";
 import { Award, BookOpen, Clock, Edit, FileEdit, LineChart, LogOut, Mail, Phone, Settings, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Modal } from "@/components/ui-custom/Modal";
+import { StudentAvatarSelector, AvatarOption } from "@/components/StudentAvatarSelector";
 
 interface UserData {
   name: string;
@@ -16,6 +18,7 @@ interface UserData {
   targetExam: string;
   targetYear: string;
   profileImage: string;
+  avatarId?: string;
 }
 
 interface StatsData {
@@ -38,6 +41,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   
   // Mock user data
   const [userData, setUserData] = useState<UserData>({
@@ -46,7 +50,8 @@ const Profile = () => {
     phone: "+91 98765 43210",
     targetExam: "JEE Advanced",
     targetYear: "2024",
-    profileImage: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=200&h=200"
+    profileImage: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=200&h=200",
+    avatarId: "photo-1"
   });
   
   // Mock stats data
@@ -81,6 +86,53 @@ const Profile = () => {
       duration: 3000,
     });
     navigate("/");
+  };
+
+  const handleAvatarChange = (avatarId: string) => {
+    // In a real app, you'd save this to the backend
+    setUserData({
+      ...userData,
+      avatarId: avatarId
+    });
+    
+    // Close modal after short delay to show selection animation
+    setTimeout(() => {
+      setShowAvatarModal(false);
+      toast({
+        title: "Avatar Updated",
+        description: "Your profile avatar has been updated successfully.",
+        duration: 3000,
+      });
+    }, 500);
+  };
+  
+  // Find the avatar source based on the selected avatar ID
+  const getAvatarSource = () => {
+    // If using default image from userData
+    if (!userData.avatarId) return userData.profileImage;
+    
+    // Find avatar from our options (code in StudentAvatarSelector)
+    const selectedAvatarId = userData.avatarId;
+    // This would normally be imported from the StudentAvatarSelector
+    const avatarOptions: AvatarOption[] = [
+      // Flat icon avatars (these won't have image URLs, they use icons)
+      { id: "flat-1", type: "flat", name: "Default" },
+      // 3D rendered avatars
+      { id: "3d-1", type: "3d", imageUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=student1&backgroundColor=b6e3f4", name: "3D Shape 1" },
+      { id: "3d-2", type: "3d", imageUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=student2&backgroundColor=d1d4f9", name: "3D Shape 2" },
+      { id: "3d-3", type: "3d", imageUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=student3&backgroundColor=c0aede", name: "3D Shape 3" },
+      { id: "3d-4", type: "3d", imageUrl: "https://api.dicebear.com/7.x/thumbs/svg?seed=student1", name: "3D Thumbs 1" },
+      { id: "3d-5", type: "3d", imageUrl: "https://api.dicebear.com/7.x/thumbs/svg?seed=student2", name: "3D Thumbs 2" },
+      { id: "3d-6", type: "3d", imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=student1", name: "3D Avatar 1" },
+      { id: "3d-7", type: "3d", imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=student2", name: "3D Avatar 2" },
+      // Photo avatars
+      { id: "photo-1", type: "photo", imageUrl: "https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=200&h=200", name: "Photo 1" },
+      { id: "photo-2", type: "photo", imageUrl: "https://images.unsplash.com/photo-1501286353178-1ec881214838?auto=format&fit=crop&w=200&h=200", name: "Photo 2" },
+      { id: "photo-3", type: "photo", imageUrl: "https://images.unsplash.com/photo-1441057206919-63d19fac2369?auto=format&fit=crop&w=200&h=200", name: "Photo 3" },
+    ];
+    
+    const avatar = avatarOptions.find(a => a.id === selectedAvatarId);
+    return avatar?.imageUrl || userData.profileImage;
   };
   
   return (
@@ -120,18 +172,17 @@ const Profile = () => {
                   <div className="flex flex-col items-center mb-6">
                     <div className="relative mb-4">
                       <AvatarContainer size="lg" className="h-24 w-24">
-                        <AvatarImage src={userData.profileImage} alt={userData.name} />
+                        <AvatarImage src={getAvatarSource()} alt={userData.name} />
                         <AvatarFallback>{userData.name.charAt(0)}</AvatarFallback>
                       </AvatarContainer>
-                      {isEditing && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0"
+                        onClick={() => setShowAvatarModal(true)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                     </div>
                     <h2 className="text-xl font-bold mb-1">{userData.name}</h2>
                     <p className="text-muted-foreground">Preparing for {userData.targetExam}</p>
@@ -362,6 +413,29 @@ const Profile = () => {
         </div>
       </main>
       <Footer />
+      
+      {/* Avatar Selection Modal */}
+      <Modal 
+        isOpen={showAvatarModal} 
+        onClose={() => setShowAvatarModal(false)}
+        title="Choose Your Avatar"
+        size="lg"
+      >
+        <StudentAvatarSelector 
+          selectedAvatar={userData.avatarId}
+          onSelect={handleAvatarChange}
+        />
+        
+        <div className="mt-6 flex justify-end">
+          <Button 
+            variant="outline" 
+            className="mr-2"
+            onClick={() => setShowAvatarModal(false)}
+          >
+            Cancel
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };
