@@ -14,7 +14,7 @@ import PhoneSignIn from "./pages/PhoneSignIn";
 import ExamSelect from "./pages/ExamSelect";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
-import Study from "./pages/Study";
+import AITutorPage from "./pages/AITutorPage";
 import SubjectDetail from "./pages/SubjectDetail";
 import Assessment from "./pages/Assessment";
 import ConceptMapPage from "./pages/ConceptMapPage";
@@ -62,7 +62,7 @@ const App = () => (
               <Route path="/exam-select" element={<ExamSelect />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/study" element={<Study />} />
+              <Route path="/ai-tutor" element={<AITutorPage />} />
               <Route path="/subject/:subjectId" element={<SubjectDetail />} />
               <Route path="/assessment" element={<Assessment />} />
               <Route path="/concept-map" element={<ConceptMapPage />} />
@@ -87,6 +87,9 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/cookies" element={<Cookies />} />
+              
+              {/* Redirect /study to /ai-tutor */}
+              <Route path="/study" element={<Navigate to="/ai-tutor" replace />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

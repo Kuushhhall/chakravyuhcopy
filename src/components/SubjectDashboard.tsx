@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { StudyPlanItem } from "@/components/StudyPlanItem";
@@ -138,7 +137,7 @@ function PriorityItem({ name, subject, urgency, reason }: PriorityItemProps) {
         </span>
         <Button 
           size="sm" 
-          onClick={() => navigate(`/study`)}
+          onClick={() => navigate(`/ai-tutor`)}
         >
           Study
         </Button>
@@ -152,7 +151,7 @@ export function SubjectDashboard() {
   const [view, setView] = useState<"grid" | "list">("grid");
   
   const handleStudyClick = (subjectId: string) => {
-    navigate(`/subject/${subjectId}`);
+    navigate(`/ai-tutor`);
   };
   
   return (
