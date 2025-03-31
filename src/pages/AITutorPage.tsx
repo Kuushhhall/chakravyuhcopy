@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -17,7 +16,7 @@ const teachers = [
     id: "alakh-pandey",
     name: "Alakh Pandey",
     title: "Physics Expert",
-    avatar: "https://placekitten.com/200/200", // Replace with actual image
+    avatar: "/lovable-uploads/27be2557-ce2e-4f04-89a3-e40dea54893d.png", // Updated with the new image path
     voiceId: "m5qndnI7u4OAdXhH0Mr5", // Krishna voice ID (Alakh Pandey customized)
     description: "Learn physics concepts in Alakh sir's unique teaching style.",
     subjects: ["Physics"],
@@ -154,8 +153,12 @@ export default function AITutorPage() {
                     {/* Since the ElevenLabsVoiceAgent component isn't directly importable, 
                         we'll use a div with instructions on how the conversation works */}
                     <div className="text-center p-6">
-                      <div className="w-24 h-24 rounded-full bg-primary/20 mx-auto mb-4 flex items-center justify-center">
-                        <User className="h-12 w-12 text-primary" />
+                      <div className="w-24 h-24 rounded-full bg-primary/20 mx-auto mb-4 flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={teachers.find(t => t.id === selectedTeacher)?.avatar} 
+                          alt={teachers.find(t => t.id === selectedTeacher)?.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <h3 className="text-xl font-medium mb-2">
                         {teachers.find(t => t.id === selectedTeacher)?.name || "AI Tutor"} is listening
