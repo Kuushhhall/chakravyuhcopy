@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
@@ -26,7 +27,7 @@ import ResourceLibrary from "./pages/ResourceLibrary";
 import About from "./pages/About"; 
 import Explore from "./pages/Explore";
 
-// New pages
+// Page imports
 import Blog from "./pages/Blog";
 import HelpCenter from "./pages/HelpCenter";
 import Testimonials from "./pages/Testimonials";
@@ -42,54 +43,56 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignIn />} />
-            <Route path="/email-signin" element={<EmailSignIn />} />
-            <Route path="/phone-signin" element={<PhoneSignIn />} />
-            
-            {/* Content routes - no login required */}
-            <Route path="/about" element={<About />} />
-            <Route path="/explore" element={<Explore />} />
-            <Route path="/exam-select" element={<ExamSelect />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/study" element={<Study />} />
-            <Route path="/subject/:subjectId" element={<SubjectDetail />} />
-            <Route path="/assessment" element={<Assessment />} />
-            <Route path="/concept-map" element={<ConceptMapPage />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/practice-tests" element={<PracticeTests />} />
-            <Route path="/test-results/:testId" element={<TestResults />} />
-            <Route path="/study-schedule" element={<StudySchedule />} />
-            <Route path="/resources" element={<ResourceLibrary />} />
-            
-            {/* Resource pages */}
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/help" element={<HelpCenter />} />
-            <Route path="/testimonials" element={<Testimonials />} />
-            
-            {/* Company pages */}
-            <Route path="/company" element={<Company />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/contact" element={<Contact />} />
-            
-            {/* Legal pages */}
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/cookies" element={<Cookies />} />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner position="top-right" expand={true} richColors closeButton />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignIn />} />
+              <Route path="/email-signin" element={<EmailSignIn />} />
+              <Route path="/phone-signin" element={<PhoneSignIn />} />
+              
+              {/* Content routes - no login required */}
+              <Route path="/about" element={<About />} />
+              <Route path="/explore" element={<Explore />} />
+              <Route path="/exam-select" element={<ExamSelect />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/study" element={<Study />} />
+              <Route path="/subject/:subjectId" element={<SubjectDetail />} />
+              <Route path="/assessment" element={<Assessment />} />
+              <Route path="/concept-map" element={<ConceptMapPage />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/practice-tests" element={<PracticeTests />} />
+              <Route path="/test-results/:testId" element={<TestResults />} />
+              <Route path="/study-schedule" element={<StudySchedule />} />
+              <Route path="/resources" element={<ResourceLibrary />} />
+              
+              {/* Resource pages */}
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/help" element={<HelpCenter />} />
+              <Route path="/testimonials" element={<Testimonials />} />
+              
+              {/* Company pages */}
+              <Route path="/company" element={<Company />} />
+              <Route path="/careers" element={<Careers />} />
+              <Route path="/contact" element={<Contact />} />
+              
+              {/* Legal pages */}
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/cookies" element={<Cookies />} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </QueryClientProvider>
 );
