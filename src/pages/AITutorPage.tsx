@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -6,7 +5,7 @@ import { Container } from "@/components/ui/container";
 import { Card, CardContent } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui-custom/Button";
 import {
-  ElevenLabsVoiceAgent,
+  VoiceAgent as ElevenLabsVoiceAgent,
   useConversation,
 } from "@11labs/react";
 import { Mic, MicOff, User, Volume2, VolumeX } from "lucide-react";
