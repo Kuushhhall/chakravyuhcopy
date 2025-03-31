@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -5,7 +6,6 @@ import { Container } from "@/components/ui/container";
 import { Card, CardContent } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui-custom/Button";
 import {
-  VoiceAgent as ElevenLabsVoiceAgent,
   useConversation,
 } from "@11labs/react";
 import { Mic, MicOff, User, Volume2, VolumeX } from "lucide-react";
@@ -64,7 +64,7 @@ export default function AITutorPage() {
       }
       
       await conversation.startSession({
-        agentId: "replace-with-your-agent-id", // You need to replace with your actual agent ID
+        agentId: "8OPvpBZArqGy3fVZKjt1", // Using the provided agent ID
         overrides: {
           tts: {
             voiceId: teacher.voiceId,
@@ -150,13 +150,30 @@ export default function AITutorPage() {
               <Card className="mb-6">
                 <CardContent className="p-6">
                   {/* The Eleven Labs Voice Agent component */}
-                  <div className="h-[600px] bg-secondary/20 rounded-lg overflow-hidden">
-                    <ElevenLabsVoiceAgent
-                      conversation={conversation}
-                      showText={true}
-                      speakerWaveSize={96}
-                      className="w-full h-full"
-                    />
+                  <div className="h-[600px] bg-secondary/20 rounded-lg overflow-hidden flex items-center justify-center">
+                    {/* Since the ElevenLabsVoiceAgent component isn't directly importable, 
+                        we'll use a div with instructions on how the conversation works */}
+                    <div className="text-center p-6">
+                      <div className="w-24 h-24 rounded-full bg-primary/20 mx-auto mb-4 flex items-center justify-center">
+                        <User className="h-12 w-12 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-medium mb-2">
+                        {teachers.find(t => t.id === selectedTeacher)?.name || "AI Tutor"} is listening
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        Speak clearly into your microphone to interact with your AI tutor
+                      </p>
+                      <div className="flex flex-col gap-2 items-center">
+                        <div className="flex gap-2">
+                          <div className={`w-2 h-2 rounded-full ${conversation.isSpeaking ? "bg-green-500 animate-pulse" : "bg-gray-300"}`}></div>
+                          <div className={`w-2 h-2 rounded-full ${conversation.isSpeaking ? "bg-green-500 animate-pulse delay-75" : "bg-gray-300"}`}></div>
+                          <div className={`w-2 h-2 rounded-full ${conversation.isSpeaking ? "bg-green-500 animate-pulse delay-150" : "bg-gray-300"}`}></div>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {conversation.isSpeaking ? "Speaking..." : "Listening..."}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
