@@ -2,16 +2,7 @@
 import { Card, CardContent } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui-custom/Button";
 import { PageHeader } from "@/components/ui/page-header";
-
-type Teacher = {
-  id: string;
-  name: string;
-  title: string;
-  avatar: string;
-  description: string;
-  subjects: string[];
-  voiceId: string;
-};
+import { Teacher } from "@/data/teacherProfiles";
 
 interface TeacherSelectionProps {
   teachers: Teacher[];
