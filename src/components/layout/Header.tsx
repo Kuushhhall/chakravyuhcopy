@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui-custom/Button";
 import { useState, useEffect } from "react";
-import { Menu, X, ChevronDown, Sparkles, Sun, Moon, User } from "lucide-react";
+import { Menu, X, ChevronDown, Sparkles, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -82,6 +82,19 @@ export function Header() {
                     )}
                   >
                     Dashboard
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              
+              <NavigationMenuItem>
+                <Link to="/ai-tutor">
+                  <NavigationMenuLink 
+                    className={cn(
+                      navigationMenuTriggerStyle(), 
+                      isActive("/ai-tutor") && "bg-accent/50"
+                    )}
+                  >
+                    AI Tutor
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
@@ -227,6 +240,15 @@ export function Header() {
               )}
             >
               Dashboard
+            </Link>
+            <Link 
+              to="/ai-tutor"
+              className={cn(
+                "text-lg font-medium transition-colors hover:text-primary py-2 border-b border-border/50",
+                isActive("/ai-tutor") && "text-primary"
+              )}
+            >
+              AI Tutor
             </Link>
             <Link 
               to="/explore"

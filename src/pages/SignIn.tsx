@@ -1,163 +1,89 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui-custom/Button";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Phone } from "lucide-react";
 import { SignInOption } from "@/components/SignInOptions";
-import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Github, Phone, AlertTriangle } from "lucide-react";
 
 const SignIn = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<{
+    google?: boolean;
+    email?: boolean;
+    phone?: boolean;
+  }>({});
   const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Check if user is already signed in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        navigate('/dashboard');
-      }
-    });
-    
-    // Show a toast if Supabase is not configured
-    if (!isSupabaseConfigured) {
-      toast.error("Supabase configuration is missing. Auth features will not work.", {
-        duration: 5000,
-      });
-    }
-  }, [navigate]);
-  
+  const { signInWithGoogle } = useAuth();
+
   const handleGoogleSignIn = async () => {
-    if (!isSupabaseConfigured) {
-      toast.error("Supabase is not configured. Please set the environment variables.");
-      return;
-    }
-    
-    setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      });
-      
-      if (error) {
-        throw error;
-      }
+      setLoading({ google: true });
+      await signInWithGoogle();
     } catch (error) {
       console.error("Google sign in error:", error);
-      toast.error("Failed to sign in with Google. Please try again.");
     } finally {
-      setLoading(false);
+      setLoading({ google: false });
     }
-  };
-  
-  const handleGithubSignIn = async () => {
-    if (!isSupabaseConfigured) {
-      toast.error("Supabase is not configured. Please set the environment variables.");
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      });
-      
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      console.error("GitHub sign in error:", error);
-      toast.error("Failed to sign in with GitHub. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleEmailSignIn = () => {
-    navigate("/email-signin");
-  };
-  
-  const handlePhoneSignIn = () => {
-    navigate("/phone-signin");
-  };
-
-  // Mock sign in for demo
-  const handleDemoSignIn = () => {
-    toast.success("Signed in with demo account");
-    setTimeout(() => navigate("/dashboard"), 1000);
   };
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 flex items-center justify-center py-10">
-        <div className="w-full max-w-md px-4 py-8 mx-auto">
+        <div className="w-full max-w-md px-4 mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Your Personal AI Tutor</h1>
-            <p className="text-muted-foreground">
-              Personalized study plans for competitive exam preparation
-            </p>
+            <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
+            <p className="text-muted-foreground">Sign in to continue your learning journey</p>
           </div>
-          
+
           {!isSupabaseConfigured && (
             <div className="mb-6 p-3 border border-yellow-300 bg-yellow-50 rounded-md flex items-center gap-2 text-sm text-yellow-800">
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
               <p>
-                Authentication is in demo mode. Click any option to proceed to the dashboard.
+                Authentication is in demo mode. Click any option to proceed without actual authentication.
               </p>
             </div>
           )}
-          
-          <div className="space-y-4 animate-fade-in">
-            <SignInOption 
-              icon={<svg className="h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" 
-                  fill="#4285F4" />
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" 
-                  fill="#34A853" />
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" 
-                  fill="#FBBC05" />
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" 
-                  fill="#EA4335" />
-              </svg>}
+
+          <div className="space-y-4">
+            <SignInOption
+              icon={
+                <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18.171 8.368h-.67v-.035H10v3.333h4.709A4.998 4.998 0 0 1 5 10a5 5 0 0 1 5-5c1.275 0 2.434.48 3.317 1.268l2.357-2.357A8.295 8.295 0 0 0 10 1.667a8.334 8.334 0 1 0 8.171 6.7Z" fill="#FFC107" />
+                  <path d="M2.628 6.121 5.366 8.13A4.998 4.998 0 0 1 10 5c1.275 0 2.434.482 3.317 1.268l2.357-2.357A8.295 8.295 0 0 0 10 1.667a8.329 8.329 0 0 0-7.372 4.454Z" fill="#FF3D00" />
+                  <path d="M10 18.333a8.294 8.294 0 0 0 5.587-2.163l-2.579-2.183A4.963 4.963 0 0 1 10 15a4.998 4.998 0 0 1-4.701-3.333L2.58 13.783A8.327 8.327 0 0 0 10 18.333Z" fill="#4CAF50" />
+                  <path d="M18.171 8.368H17.5v-.034H10v3.333h4.71a5.017 5.017 0 0 1-1.703 2.321l2.58 2.182c-.182.166 2.746-2.003 2.746-6.17 0-.559-.057-1.104-.162-1.632Z" fill="#1976D2" />
+                </svg>
+              }
               text="Continue with Google"
-              onClick={isSupabaseConfigured ? handleGoogleSignIn : handleDemoSignIn}
-              loading={loading}
+              onClick={handleGoogleSignIn}
+              loading={loading.google}
             />
-            
-            <SignInOption 
-              icon={<Github className="h-5 w-5" />}
-              text="Continue with GitHub"
-              onClick={isSupabaseConfigured ? handleGithubSignIn : handleDemoSignIn}
-              loading={loading}
-            />
-            
-            <SignInOption 
-              icon={<Mail className="h-5 w-5" />}
-              text="Continue with Email"
-              onClick={isSupabaseConfigured ? handleEmailSignIn : handleDemoSignIn}
-              loading={loading}
-            />
-            
-            <SignInOption 
-              icon={<Phone className="h-5 w-5" />}
-              text="Continue with Phone"
-              onClick={isSupabaseConfigured ? handlePhoneSignIn : handleDemoSignIn}
-              loading={loading}
-            />
+
+            <Link to="/email-signin">
+              <SignInOption
+                icon={<Mail className="h-5 w-5 text-gray-600" />}
+                text="Continue with Email"
+                onClick={() => {}}
+                loading={loading.email}
+              />
+            </Link>
+
+            <Link to="/phone-signin">
+              <SignInOption
+                icon={<Phone className="h-5 w-5 text-gray-600" />}
+                text="Continue with Phone"
+                onClick={() => {}}
+                loading={loading.phone}
+              />
+            </Link>
           </div>
-          
-          <div className="mt-6 text-center text-sm animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <p className="text-muted-foreground">
+
+          <div className="mt-8 text-center text-sm text-muted-foreground">
+            <p>
               By continuing, you agree to our{" "}
               <Link to="/terms" className="text-primary hover:underline">
                 Terms of Service
@@ -166,6 +92,7 @@ const SignIn = () => {
               <Link to="/privacy" className="text-primary hover:underline">
                 Privacy Policy
               </Link>
+              .
             </p>
           </div>
         </div>

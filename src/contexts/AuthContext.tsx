@@ -9,12 +9,14 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signOut: async () => {},
+  signInWithGoogle: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -50,8 +52,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     navigate('/signin');
   };
 
+  const signInWithGoogle = async () => {
+    if (!isSupabaseConfigured) {
+      // Demo mode - simulate Google login
+      toast.success("Demo mode: Signed in with Google successfully!");
+      setTimeout(() => navigate("/dashboard"), 1000);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || "Failed to sign in with Google");
+      console.error("Google auth error:", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, signInWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );
