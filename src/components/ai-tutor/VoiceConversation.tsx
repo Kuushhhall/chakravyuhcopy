@@ -6,6 +6,15 @@ import { useConversation } from "@11labs/react";
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_VOICE_ID, DEFAULT_AGENT_ID } from "@/config/env";
 
+// Define more specific type for messages from Eleven Labs
+interface ElevenLabsMessage {
+  message?: string;
+  source?: string;
+  text?: string;
+  is_final?: boolean;
+  [key: string]: unknown;
+}
+
 interface Message {
   text: string;
   isUser: boolean;
@@ -45,19 +54,19 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
       });
       setIsSessionActive(false);
     },
-    onMessage: (message) => {
+    onMessage: (message: ElevenLabsMessage) => {
       // Handle incoming message from AI
       if (message && typeof message === 'object') {
         if ("message" in message && typeof message.message === 'string') {
           setMessages(prev => [...prev, {
-            text: message.message,
+            text: message.message as string,
             isUser: false
           }]);
         } else if ("text" in message && message.text) {
           // Check if it's a final transcript and contains text
-          if (message.hasOwnProperty('is_final') && message.is_final === true && typeof message.text === 'string') {
+          if (message.is_final === true && typeof message.text === 'string') {
             setMessages(prev => [...prev, {
-              text: message.text as string,
+              text: message.text,
               isUser: true
             }]);
           }
@@ -77,14 +86,15 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
     try {
       setIsSessionActive(true);
       
+      // The apiKey is now passed directly in the authorization field according to the library's requirements
       await conversation.startSession({
         agentId: DEFAULT_AGENT_ID,
+        authorization: apiKey, // Pass API key as authorization
         overrides: {
           tts: {
             voiceId: DEFAULT_VOICE_ID,
           }
-        },
-        apiKey: apiKey, // Pass API key separately
+        }
       });
     } catch (error) {
       console.error("Failed to start conversation:", error);
