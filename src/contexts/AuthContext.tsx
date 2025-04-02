@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { Session, User, Provider } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  updateUserProfile: (avatarUrl?: string, name?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,6 +32,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN') {
+          // Update user profile in database with provider data if available
+          if (session?.user) {
+            setTimeout(() => {
+              syncUserProfileWithProviderData(session.user);
+            }, 0);
+          }
           navigate('/dashboard');
         }
         
@@ -49,6 +56,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Function to sync user profile with provider data
+  const syncUserProfileWithProviderData = async (user: User) => {
+    try {
+      if (!user) return;
+
+      // Check if user has identity data from providers
+      if (!user.identities || user.identities.length === 0) return;
+
+      // Get provider data (prioritize Google)
+      const googleIdentity = user.identities.find(identity => identity.provider === 'google');
+      const identityData = googleIdentity ? googleIdentity.identity_data : user.identities[0].identity_data;
+
+      if (!identityData) return;
+
+      // Get existing profile data
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      // Update fields only if they're not already set
+      const updates = {
+        display_name: existingProfile?.display_name || identityData.full_name || identityData.name || user.user_metadata.name,
+        email: existingProfile?.email || user.email,
+        profile_picture: existingProfile?.profile_picture || identityData.avatar_url || user.user_metadata.avatar_url,
+        updated_at: new Date().toISOString()
+      };
+
+      // Update the profile
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          ...updates
+        });
+
+      if (error) {
+        console.error('Error updating profile with provider data:', error);
+      }
+    } catch (error) {
+      console.error('Error syncing user profile with provider data:', error);
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -106,6 +158,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         },
       });
 
@@ -114,6 +170,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in with Google");
+      throw error;
+    }
+  };
+
+  // Function to update user profile with new avatar or name
+  const updateUserProfile = async (avatarUrl?: string, name?: string) => {
+    try {
+      if (!user) return;
+
+      const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+      
+      if (avatarUrl) updates.profile_picture = avatarUrl;
+      if (name) updates.display_name = name;
+
+      // Update the profile table
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Update auth metadata if name changed
+      if (name) {
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: { name }
+        });
+
+        if (metadataError) throw metadataError;
+      }
+
+      toast.success("Profile updated successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update profile");
       throw error;
     }
   };
@@ -128,6 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         signInWithGoogle,
+        updateUserProfile,
       }}
     >
       {children}
