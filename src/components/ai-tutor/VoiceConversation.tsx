@@ -6,10 +6,15 @@ import { useConversation } from "@11labs/react";
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_VOICE_ID, DEFAULT_AGENT_ID } from "@/config/env";
 
+interface Message {
+  text: string;
+  isUser: boolean;
+}
+
 export default function VoiceConversation({ apiKey }: { apiKey: string }) {
   const [isMuted, setIsMuted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [messages, setMessages] = useState<{text: string, isUser: boolean}[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -48,11 +53,11 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
             text: message.message,
             isUser: false
           }]);
-        } else if ("text" in message && typeof message.text === 'string') {
-          // Handle transcript messages
-          if (message.is_final && message.text) {
+        } else if ("text" in message && message.text) {
+          // Check if it's a final transcript and contains text
+          if (message.hasOwnProperty('is_final') && message.is_final === true && typeof message.text === 'string') {
             setMessages(prev => [...prev, {
-              text: message.text,
+              text: message.text as string,
               isUser: true
             }]);
           }
@@ -77,9 +82,9 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
         overrides: {
           tts: {
             voiceId: DEFAULT_VOICE_ID,
-          },
-          apiKey: apiKey,
+          }
         },
+        apiKey: apiKey, // Pass API key separately
       });
     } catch (error) {
       console.error("Failed to start conversation:", error);
@@ -128,6 +133,8 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
       </div>
     );
   };
+
+  const isListening = conversation.status === "connected" && !conversation.isSpeaking;
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-background rounded-lg border shadow-sm overflow-hidden">
@@ -210,11 +217,11 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
       {isSessionActive && !conversation.isSpeaking && (
         <div className="p-4 border-t flex justify-center">
           <div className="relative">
-            <div className={`absolute -top-8 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-secondary rounded-full text-xs ${conversation.status === 'listening' ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
+            <div className={`absolute -top-8 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-secondary rounded-full text-xs ${isListening ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
               Listening...
             </div>
-            <div className={`h-16 w-16 rounded-full flex items-center justify-center ${conversation.status === 'listening' ? 'bg-primary/10 animate-pulse' : 'bg-muted'}`}>
-              <Mic className={`h-8 w-8 ${conversation.status === 'listening' ? 'text-primary' : 'text-muted-foreground'}`} />
+            <div className={`h-16 w-16 rounded-full flex items-center justify-center ${isListening ? 'bg-primary/10 animate-pulse' : 'bg-muted'}`}>
+              <Mic className={`h-8 w-8 ${isListening ? 'text-primary' : 'text-muted-foreground'}`} />
             </div>
           </div>
         </div>
