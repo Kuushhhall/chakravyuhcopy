@@ -1,6 +1,5 @@
 
-import { Header } from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import { PageLayout } from "@/components/layout/PageLayout";
 import { ExamCard } from "@/components/ExamCard";
 import { useNavigate } from "react-router-dom";
 import { GraduationCap, Heart, LineChart, Building, Cog } from "lucide-react";
@@ -19,9 +18,8 @@ const ExamSelect = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 py-10">
+    <PageLayout showFooter={false}>
+      <div className="py-10">
         <div className="container max-w-4xl px-4 mx-auto">
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-3xl font-bold mb-2">Choose Your Exam</h1>
@@ -67,9 +65,8 @@ const ExamSelect = () => {
             />
           </div>
         </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </PageLayout>
   );
 };
 

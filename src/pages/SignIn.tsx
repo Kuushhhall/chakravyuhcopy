@@ -1,7 +1,6 @@
 
 import { useState } from "react";
-import { Header } from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui-custom/Button";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Phone } from "lucide-react";
@@ -31,9 +30,8 @@ const SignIn = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 flex items-center justify-center py-10">
+    <PageLayout showFooter={true}>
+      <div className="flex items-center justify-center py-10">
         <div className="w-full max-w-md px-4 mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
@@ -96,9 +94,8 @@ const SignIn = () => {
             </p>
           </div>
         </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </PageLayout>
   );
 };
 
