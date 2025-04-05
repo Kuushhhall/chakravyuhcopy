@@ -2,18 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui-custom/Button";
 import { Mic, MicOff, VolumeX, Volume2 } from "lucide-react";
-import { useConversation } from "@11labs/react";
 import { useToast } from "@/hooks/use-toast";
-import { DEFAULT_VOICE_ID, DEFAULT_AGENT_ID } from "@/config/env";
-
-// Define more specific type for messages from Eleven Labs
-interface ElevenLabsMessage {
-  message?: string;
-  source?: string;
-  text?: string;
-  is_final?: boolean;
-  [key: string]: unknown;
-}
+import { useVapiConversation } from "@/hooks/useVapiConversation";
+import { DEFAULT_ASSISTANT_ID } from "@/config/env";
 
 interface Message {
   text: string;
@@ -27,10 +18,10 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Configuration for the ElevenLabs conversation
-  const conversation = useConversation({
+  // Use our custom Vapi hook
+  const vapiConversation = useVapiConversation({
     onConnect: () => {
-      console.log("Connected to Eleven Labs");
+      console.log("Connected to Vapi AI");
       toast({
         title: "Connected",
         description: "Voice conversation started",
@@ -42,11 +33,11 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
       }]);
     },
     onDisconnect: () => {
-      console.log("Disconnected from Eleven Labs");
+      console.log("Disconnected from Vapi AI");
       setIsSessionActive(false);
     },
     onError: (error) => {
-      console.error("Eleven Labs error:", error);
+      console.error("Vapi AI error:", error);
       toast({
         title: "Connection Error",
         description: "We couldn't connect to the voice service. Please try again.",
@@ -54,24 +45,8 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
       });
       setIsSessionActive(false);
     },
-    onMessage: (message: ElevenLabsMessage) => {
-      // Handle incoming message from AI
-      if (message && typeof message === 'object') {
-        if ("message" in message && typeof message.message === 'string') {
-          setMessages(prev => [...prev, {
-            text: message.message as string,
-            isUser: false
-          }]);
-        } else if ("text" in message && message.text) {
-          // Check if it's a final transcript and contains text
-          if (message.is_final === true && typeof message.text === 'string') {
-            setMessages(prev => [...prev, {
-              text: message.text,
-              isUser: true
-            }]);
-          }
-        }
-      }
+    onMessage: (message) => {
+      setMessages(prev => [...prev, message]);
     }
   });
 
@@ -86,15 +61,10 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
     try {
       setIsSessionActive(true);
       
-      // The apiKey is now passed directly in the authorization field according to the library's requirements
-      await conversation.startSession({
-        agentId: DEFAULT_AGENT_ID,
-        authorization: apiKey, // Pass API key as authorization
-        overrides: {
-          tts: {
-            voiceId: DEFAULT_VOICE_ID,
-          }
-        }
+      await vapiConversation.startSession({
+        apiKey,
+        assistantId: DEFAULT_ASSISTANT_ID,
+        initialMessage: "You are an AI tutor. Greet the student and ask what they'd like to learn about today."
       });
     } catch (error) {
       console.error("Failed to start conversation:", error);
@@ -109,7 +79,7 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
 
   const handleEndConversation = async () => {
     try {
-      await conversation.endSession();
+      await vapiConversation.endSession();
       setIsSessionActive(false);
       toast({
         title: "Session Ended",
@@ -123,7 +93,7 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
   const handleMuteToggle = () => {
     setIsMuted(!isMuted);
     // Update the volume in the conversation
-    conversation.setVolume({ volume: isMuted ? 1 : 0 });
+    vapiConversation.adjustVolume(isMuted ? 1 : 0);
   };
 
   // Render animated waveform when speaking
@@ -144,7 +114,7 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
     );
   };
 
-  const isListening = conversation.status === "connected" && !conversation.isSpeaking;
+  const isListening = vapiConversation.status === "connected" && !vapiConversation.isSpeaking;
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-background rounded-lg border shadow-sm overflow-hidden">
@@ -152,7 +122,7 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
           <h2 className="font-medium">AI Voice Tutor</h2>
-          {isSessionActive && conversation.isSpeaking && (
+          {isSessionActive && vapiConversation.isSpeaking && (
             <div className="ml-2">
               {renderWaveform()}
             </div>
@@ -224,7 +194,7 @@ export default function VoiceConversation({ apiKey }: { apiKey: string }) {
       </div>
       
       {/* Voice Controls */}
-      {isSessionActive && !conversation.isSpeaking && (
+      {isSessionActive && !vapiConversation.isSpeaking && (
         <div className="p-4 border-t flex justify-center">
           <div className="relative">
             <div className={`absolute -top-8 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-secondary rounded-full text-xs ${isListening ? 'opacity-100' : 'opacity-0'} transition-opacity`}>

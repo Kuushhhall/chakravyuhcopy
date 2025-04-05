@@ -2,17 +2,17 @@
 import { useState, useEffect } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Container } from "@/components/ui/container";
-import { ElevenLabsSetup } from "@/components/ai-tutor/ElevenLabsSetup";
+import { VapiSetup } from "@/components/ai-tutor/VapiSetup";
 import VoiceConversation from "@/components/ai-tutor/VoiceConversation";
-import { ELEVEN_LABS_API_KEY, isElevenLabsConfigured } from "@/config/env";
+import { VAPI_API_KEY, isVapiConfigured } from "@/config/env";
 
 export default function AITutorPage() {
-  const [apiKey, setApiKey] = useState<string>(ELEVEN_LABS_API_KEY);
-  const [isConfigured, setIsConfigured] = useState<boolean>(isElevenLabsConfigured);
+  const [apiKey, setApiKey] = useState<string>(VAPI_API_KEY);
+  const [isConfigured, setIsConfigured] = useState<boolean>(isVapiConfigured);
 
   // Check for API key in localStorage on mount
   useEffect(() => {
-    const storedApiKey = localStorage.getItem("elevenLabsApiKey");
+    const storedApiKey = localStorage.getItem("vapiApiKey");
     if (storedApiKey) {
       setApiKey(storedApiKey);
       setIsConfigured(true);
@@ -30,7 +30,7 @@ export default function AITutorPage() {
         {isConfigured ? (
           <VoiceConversation apiKey={apiKey} />
         ) : (
-          <ElevenLabsSetup onSetupComplete={handleSetupComplete} />
+          <VapiSetup onSetupComplete={handleSetupComplete} />
         )}
       </Container>
     </PageLayout>
