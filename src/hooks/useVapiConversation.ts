@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import PhoneCallClient from '@vapi-ai/web';
-import type { PhoneCallConfig } from '@vapi-ai/web';
+import Vapi from '@vapi-ai/web';
+import type { VapiClientToServerMessage } from '@vapi-ai/web';
 
 type VapiMessage = {
   text: string;
@@ -24,7 +24,7 @@ export const useVapiConversation = ({
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected'>('idle');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [volume, setVolume] = useState(1);
-  const clientRef = useRef<PhoneCallClient | null>(null);
+  const clientRef = useRef<Vapi | null>(null);
 
   const startSession = useCallback(async ({ 
     apiKey, 
@@ -38,7 +38,7 @@ export const useVapiConversation = ({
     try {
       setStatus('connecting');
 
-      const config: PhoneCallConfig = {
+      const config = {
         apiKey,
         assistantId,
         logger: { logLevel: 'debug' },
@@ -52,7 +52,7 @@ export const useVapiConversation = ({
         onAgentStop: () => {
           setIsSpeaking(false);
         },
-        onError: (error) => {
+        onError: (error: Error) => {
           console.error('Vapi error:', error);
           if (onError) onError(error);
         },
@@ -64,7 +64,7 @@ export const useVapiConversation = ({
           setStatus('disconnected');
           if (onDisconnect) onDisconnect();
         },
-        onTranscription: (transcript) => {
+        onTranscription: (transcript: { text: string }) => {
           if (onMessage) {
             onMessage({
               text: transcript.text,
@@ -72,7 +72,7 @@ export const useVapiConversation = ({
             });
           }
         },
-        onMessage: (message) => {
+        onMessage: (message: { text: string }) => {
           if (onMessage) {
             onMessage({
               text: message.text,
@@ -83,7 +83,7 @@ export const useVapiConversation = ({
       };
 
       // Initialize the Vapi client
-      const client = new PhoneCallClient(config);
+      const client = new Vapi(config);
       clientRef.current = client;
 
       // Start the call
@@ -91,7 +91,7 @@ export const useVapiConversation = ({
 
       // Send initial message if provided
       if (initialMessage && client) {
-        client.send(initialMessage);
+        client.send({ text: initialMessage });
       }
 
       return client;
@@ -119,13 +119,16 @@ export const useVapiConversation = ({
   const adjustVolume = useCallback((newVolume: number) => {
     setVolume(newVolume);
     if (clientRef.current) {
-      clientRef.current.setVolume(newVolume);
+      // Update volume through the audio configuration
+      if (clientRef.current.audio) {
+        clientRef.current.audio.volume = newVolume;
+      }
     }
   }, []);
 
   const sendMessage = useCallback((message: string) => {
     if (clientRef.current && status === 'connected') {
-      clientRef.current.send(message);
+      clientRef.current.send({ text: message });
       return true;
     }
     return false;
@@ -135,7 +138,7 @@ export const useVapiConversation = ({
   useEffect(() => {
     return () => {
       if (clientRef.current) {
-        clientRef.current.stop().catch(console.error);
+        clientRef.current.stop();
       }
     };
   }, []);
