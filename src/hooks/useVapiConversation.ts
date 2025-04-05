@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { PhoneCallClient, PhoneCallConfig } from '@vapi-ai/web';
+import PhoneCallClient from '@vapi-ai/web';
+import type { PhoneCallConfig } from '@vapi-ai/web';
 
 type VapiMessage = {
   text: string;
