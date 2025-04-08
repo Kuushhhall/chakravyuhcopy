@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Vapi from '@vapi-ai/web';
-import type { VapiClientToServerMessage } from '@vapi-ai/web';
 
 type VapiMessage = {
   text: string;
@@ -91,7 +90,7 @@ export const useVapiConversation = ({
 
       // Send initial message if provided
       if (initialMessage && client) {
-        client.send({ text: initialMessage });
+        client.send(initialMessage);
       }
 
       return client;
@@ -119,16 +118,14 @@ export const useVapiConversation = ({
   const adjustVolume = useCallback((newVolume: number) => {
     setVolume(newVolume);
     if (clientRef.current) {
-      // Update volume through the audio configuration
-      if (clientRef.current.audio) {
-        clientRef.current.audio.volume = newVolume;
-      }
+      // The correct way to set volume with the Vapi SDK
+      clientRef.current.setVolume?.(newVolume);
     }
   }, []);
 
   const sendMessage = useCallback((message: string) => {
     if (clientRef.current && status === 'connected') {
-      clientRef.current.send({ text: message });
+      clientRef.current.send(message);
       return true;
     }
     return false;
