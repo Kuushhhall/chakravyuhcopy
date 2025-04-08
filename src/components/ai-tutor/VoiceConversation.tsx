@@ -101,9 +101,10 @@ export default function VoiceConversation({ apiKey, assistantId }: VoiceConversa
     try {
       setIsSessionActive(true);
       
+      // Make sure we pass both the API key and assistant ID
       await vapiConversation.startSession({
-        apiKey,
-        assistantId,
+        apiKey: apiKey,
+        assistantId: assistantId,
         initialMessage: "You are an AI tutor. Greet the student and ask what they'd like to learn about today."
       });
     } catch (error) {

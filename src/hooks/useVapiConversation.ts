@@ -37,7 +37,7 @@ export const useVapiConversation = ({
     try {
       setStatus('connecting');
       
-      // Create the Vapi client with configuration
+      // Create the Vapi client with the API key and assistant ID
       const client = new Vapi(apiKey, assistantId);
       
       // Add event listeners using the addListener approach
@@ -86,12 +86,12 @@ export const useVapiConversation = ({
 
       clientRef.current = client;
 
-      // Start the call
+      // Start the call - no additional options needed as we provided assistantId during initialization
       await client.start();
 
       // Send initial message if provided
       if (initialMessage && client) {
-        // Use any type to bypass TypeScript checking for sendText
+        // Use type assertion for sendText method
         (client as any).sendText(initialMessage);
       }
 
@@ -123,7 +123,7 @@ export const useVapiConversation = ({
     if (clientRef.current) {
       // Try different approaches to adjust volume based on what's available
       try {
-        // This is a workaround as the direct method might not be available
+        // Use type assertion for setVolume method
         const client = clientRef.current as any;
         if (typeof client.setVolume === 'function') {
           client.setVolume(newVolume);
@@ -139,7 +139,7 @@ export const useVapiConversation = ({
   const sendMessage = useCallback((message: string) => {
     if (clientRef.current && status === 'connected') {
       try {
-        // Use any type to bypass TypeScript checking for sendText
+        // Use type assertion for sendText method
         (clientRef.current as any).sendText(message);
         return true;
       } catch (e) {
