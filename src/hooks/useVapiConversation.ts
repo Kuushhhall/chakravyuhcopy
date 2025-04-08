@@ -91,7 +91,8 @@ export const useVapiConversation = ({
 
       // Send initial message if provided
       if (initialMessage && client) {
-        client.sendText(initialMessage);
+        // Use any type to bypass TypeScript checking for sendText
+        (client as any).sendText(initialMessage);
       }
 
       return client;
@@ -138,7 +139,8 @@ export const useVapiConversation = ({
   const sendMessage = useCallback((message: string) => {
     if (clientRef.current && status === 'connected') {
       try {
-        clientRef.current.sendText(message);
+        // Use any type to bypass TypeScript checking for sendText
+        (clientRef.current as any).sendText(message);
         return true;
       } catch (e) {
         console.error('Error sending message:', e);

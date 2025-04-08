@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Container } from "@/components/ui/container";
 import VoiceConversation from "@/components/ai-tutor/VoiceConversation";
