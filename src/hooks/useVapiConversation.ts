@@ -40,33 +40,32 @@ export const useVapiConversation = ({
       // Create the Vapi client with configuration
       const client = new Vapi(apiKey, assistantId);
       
-      // Add event listeners using the addEventListener approach
-      client.addEventListener('agentStart', () => {
+      // Add event listeners using the addListener approach
+      client.addListener('agentStart', () => {
         setIsSpeaking(true);
       });
       
-      client.addEventListener('agentStop', () => {
+      client.addListener('agentStop', () => {
         setIsSpeaking(false);
       });
       
-      client.addEventListener('error', (error: Error) => {
+      client.addListener('error', (error: Error) => {
         console.error('Vapi error:', error);
         if (onError) onError(error);
       });
       
-      client.addEventListener('connect', () => {
+      client.addListener('connect', () => {
         setStatus('connected');
         if (onConnect) onConnect();
       });
       
-      client.addEventListener('disconnect', () => {
+      client.addListener('disconnect', () => {
         setStatus('disconnected');
         if (onDisconnect) onDisconnect();
       });
       
       // Handle transcriptions
-      client.addEventListener('transcription', (event: any) => {
-        const transcript = event.detail || event;
+      client.addListener('transcription', (transcript: any) => {
         if (onMessage && transcript.text) {
           onMessage({
             text: transcript.text,
@@ -76,8 +75,7 @@ export const useVapiConversation = ({
       });
       
       // Handle AI messages
-      client.addEventListener('message', (event: any) => {
-        const message = event.detail || event;
+      client.addListener('message', (message: any) => {
         if (onMessage && message.text) {
           onMessage({
             text: message.text,
@@ -122,14 +120,12 @@ export const useVapiConversation = ({
     setVolume(newVolume);
     // Update the volume on the active client if it exists
     if (clientRef.current) {
-      // Assuming Vapi client has a volume control
-      // We'll use client.audioConfig if available, otherwise assume volume might be controlled differently
+      // Try different approaches to adjust volume based on what's available
       try {
-        // This is an approximation - we need to check Vapi docs for the exact API
-        if (typeof clientRef.current.setAudioVolume === 'function') {
-          (clientRef.current as any).setAudioVolume(newVolume);
-        } else if (typeof (clientRef.current as any).setVolume === 'function') {
-          (clientRef.current as any).setVolume(newVolume);
+        // This is a workaround as the direct method might not be available
+        const client = clientRef.current as any;
+        if (typeof client.setVolume === 'function') {
+          client.setVolume(newVolume);
         } else {
           console.warn('Volume control not available on Vapi client');
         }

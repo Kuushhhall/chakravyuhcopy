@@ -9,8 +9,6 @@ export default function AITutorPage() {
   const [apiKey] = useState<string>(VAPI_API_KEY);
   const [assistantId] = useState<string>(DEFAULT_ASSISTANT_ID);
 
-  // No need to check for API key in localStorage as we're using env variables
-
   return (
     <PageLayout showFooter={false}>
       <Container className="py-4">

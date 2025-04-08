@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui-custom/Button";
 import { Card } from "@/components/ui-custom/Card";
-import { Mic, MicOff, VolumeX, Volume2, ArrowLeft, Activity } from "lucide-react";
+import { Mic, MicOff, VolumeX, Volume2, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useVapiConversation } from "@/hooks/useVapiConversation";
 
