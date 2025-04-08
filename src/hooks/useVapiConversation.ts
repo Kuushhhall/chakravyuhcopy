@@ -12,13 +12,17 @@ interface UseVapiConversationProps {
   onError?: (error: Error) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
+  onSpeakingStart?: () => void;
+  onSpeakingEnd?: () => void;
 }
 
 export const useVapiConversation = ({
   onMessage,
   onError,
   onConnect,
-  onDisconnect
+  onDisconnect,
+  onSpeakingStart,
+  onSpeakingEnd
 }: UseVapiConversationProps = {}) => {
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected'>('idle');
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -37,48 +41,55 @@ export const useVapiConversation = ({
     try {
       setStatus('connecting');
       
-      // Create the Vapi client with the API key and assistant ID
-      const client = new Vapi(apiKey, assistantId);
+      // Create the Vapi client according to documentation
+      const client = new Vapi();
       
-      // Add event listeners using the addListener approach
-      client.addListener('agentStart', () => {
+      // Initialize with API key
+      client.setApiKey(apiKey);
+      
+      // Setup event listeners
+      client.on('speech-start', () => {
         setIsSpeaking(true);
+        if (onSpeakingStart) onSpeakingStart();
       });
       
-      client.addListener('agentStop', () => {
+      client.on('speech-end', () => {
         setIsSpeaking(false);
+        if (onSpeakingEnd) onSpeakingEnd();
       });
       
-      client.addListener('error', (error: Error) => {
+      client.on('error', (error: Error) => {
         console.error('Vapi error:', error);
         if (onError) onError(error);
       });
       
-      client.addListener('connect', () => {
+      client.on('ready', () => {
         setStatus('connected');
         if (onConnect) onConnect();
       });
       
-      client.addListener('disconnect', () => {
+      client.on('disconnect', () => {
         setStatus('disconnected');
         if (onDisconnect) onDisconnect();
       });
       
-      // Handle transcriptions
-      client.addListener('transcription', (transcript: any) => {
-        if (onMessage && transcript.text) {
+      // Handle user transcriptions
+      client.on('transcript', (transcript: any) => {
+        console.log('User transcript:', transcript);
+        if (onMessage && transcript.transcript) {
           onMessage({
-            text: transcript.text,
+            text: transcript.transcript,
             isUser: true
           });
         }
       });
       
-      // Handle AI messages
-      client.addListener('message', (message: any) => {
-        if (onMessage && message.text) {
+      // Handle AI responses
+      client.on('message', (message: any) => {
+        console.log('AI message:', message);
+        if (onMessage && message.content) {
           onMessage({
-            text: message.text,
+            text: message.content,
             isUser: false
           });
         }
@@ -86,14 +97,20 @@ export const useVapiConversation = ({
 
       clientRef.current = client;
 
-      // Start the call - no additional options needed as we provided assistantId during initialization
-      await client.start();
+      // Configure the conversation
+      const startOptions = {
+        assistant: {
+          id: assistantId
+        },
+        conversation: {
+          audioEnabled: true,
+          welcome: initialMessage ? true : false,
+          welcomeMessage: initialMessage || ''
+        }
+      };
 
-      // Send initial message if provided
-      if (initialMessage && client) {
-        // Use type assertion for sendText method
-        (client as any).sendText(initialMessage);
-      }
+      // Start the conversation
+      await client.start(startOptions);
 
       return client;
     } catch (error) {
@@ -102,7 +119,7 @@ export const useVapiConversation = ({
       if (onError && error instanceof Error) onError(error);
       throw error;
     }
-  }, [onConnect, onDisconnect, onError, onMessage]);
+  }, [onConnect, onDisconnect, onError, onMessage, onSpeakingStart, onSpeakingEnd]);
 
   const endSession = useCallback(async () => {
     try {
@@ -121,15 +138,9 @@ export const useVapiConversation = ({
     setVolume(newVolume);
     // Update the volume on the active client if it exists
     if (clientRef.current) {
-      // Try different approaches to adjust volume based on what's available
       try {
-        // Use type assertion for setVolume method
-        const client = clientRef.current as any;
-        if (typeof client.setVolume === 'function') {
-          client.setVolume(newVolume);
-        } else {
-          console.warn('Volume control not available on Vapi client');
-        }
+        // Set the volume using the appropriate method according to the docs
+        clientRef.current.setAudioVolume(newVolume);
       } catch (e) {
         console.warn('Volume adjustment not supported:', e);
       }
@@ -139,8 +150,8 @@ export const useVapiConversation = ({
   const sendMessage = useCallback((message: string) => {
     if (clientRef.current && status === 'connected') {
       try {
-        // Use type assertion for sendText method
-        (clientRef.current as any).sendText(message);
+        // Send a message using the appropriate method
+        clientRef.current.sendMessage(message);
         return true;
       } catch (e) {
         console.error('Error sending message:', e);

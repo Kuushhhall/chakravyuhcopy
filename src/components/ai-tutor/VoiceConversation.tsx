@@ -35,15 +35,6 @@ export default function VoiceConversation({ apiKey, assistantId }: VoiceConversa
         title: "Connected",
         description: "Voice conversation started",
       });
-      // Add initial welcome message
-      setMessages(prev => [...prev, {
-        text: "Hello! I'm your AI tutor. What would you like to learn about today?",
-        isUser: false
-      }]);
-      
-      // Initialize the whiteboard with the welcome message
-      setWhiteboard(["Hello!", "I'm", "your", "AI", "tutor.", "What", "would", "you", "like", "to", "learn", "about", "today?"]);
-      simulateWordHighlighting(["Hello!", "I'm", "your", "AI", "tutor.", "What", "would", "you", "like", "to", "learn", "about", "today?"]);
     },
     onDisconnect: () => {
       console.log("Disconnected from Vapi AI");
@@ -59,6 +50,7 @@ export default function VoiceConversation({ apiKey, assistantId }: VoiceConversa
       setIsSessionActive(false);
     },
     onMessage: (message) => {
+      console.log("Received message:", message);
       setMessages(prev => [...prev, message]);
       
       // If the message is from the AI, update the whiteboard
@@ -67,6 +59,13 @@ export default function VoiceConversation({ apiKey, assistantId }: VoiceConversa
         setWhiteboard(words);
         simulateWordHighlighting(words);
       }
+    },
+    onSpeakingStart: () => {
+      console.log("AI started speaking");
+    },
+    onSpeakingEnd: () => {
+      console.log("AI stopped speaking");
+      setCurrentWordIndex(-1); // Reset after completion
     }
   });
 
@@ -101,12 +100,25 @@ export default function VoiceConversation({ apiKey, assistantId }: VoiceConversa
     try {
       setIsSessionActive(true);
       
-      // Make sure we pass both the API key and assistant ID
+      // Initialize with welcome message
+      const initialMessage = "You are an AI tutor. Greet the student and ask what they'd like to learn about today.";
+      
+      // Start the Vapi session
       await vapiConversation.startSession({
-        apiKey: apiKey,
-        assistantId: assistantId,
-        initialMessage: "You are an AI tutor. Greet the student and ask what they'd like to learn about today."
+        apiKey,
+        assistantId,
+        initialMessage
       });
+      
+      // Add initial welcome message (this will be replaced when the AI actually responds)
+      setMessages(prev => [...prev, {
+        text: "Hello! I'm your AI tutor. What would you like to learn about today?",
+        isUser: false
+      }]);
+      
+      // Initialize the whiteboard
+      setWhiteboard(["Hello!", "I'm", "your", "AI", "tutor.", "What", "would", "you", "like", "to", "learn", "about", "today?"]);
+      simulateWordHighlighting(["Hello!", "I'm", "your", "AI", "tutor.", "What", "would", "you", "like", "to", "learn", "about", "today?"]);
     } catch (error) {
       console.error("Failed to start conversation:", error);
       setIsSessionActive(false);
