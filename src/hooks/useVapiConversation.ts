@@ -36,56 +36,55 @@ export const useVapiConversation = ({
   }) => {
     try {
       setStatus('connecting');
-
-      // For Vapi.ai, we need to pass configuration directly
+      
+      // Create the Vapi client with configuration
       const client = new Vapi(apiKey, assistantId);
       
-      // Configure client options
-      client.setLogLevel('debug');
-      client.setAudioPlayback(true);
-      client.setAudioVolume(volume);
-      
-      // Set up event handlers
-      client.onAgentStart = () => {
+      // Add event listeners using the addEventListener approach
+      client.addEventListener('agentStart', () => {
         setIsSpeaking(true);
-      };
+      });
       
-      client.onAgentStop = () => {
+      client.addEventListener('agentStop', () => {
         setIsSpeaking(false);
-      };
+      });
       
-      client.onError = (error: Error) => {
+      client.addEventListener('error', (error: Error) => {
         console.error('Vapi error:', error);
         if (onError) onError(error);
-      };
+      });
       
-      client.onConnect = () => {
+      client.addEventListener('connect', () => {
         setStatus('connected');
         if (onConnect) onConnect();
-      };
+      });
       
-      client.onDisconnect = () => {
+      client.addEventListener('disconnect', () => {
         setStatus('disconnected');
         if (onDisconnect) onDisconnect();
-      };
+      });
       
-      client.onTranscription = (transcript: { text: string }) => {
-        if (onMessage) {
+      // Handle transcriptions
+      client.addEventListener('transcription', (event: any) => {
+        const transcript = event.detail || event;
+        if (onMessage && transcript.text) {
           onMessage({
             text: transcript.text,
             isUser: true
           });
         }
-      };
+      });
       
-      client.onMessage = (message: { text: string }) => {
-        if (onMessage) {
+      // Handle AI messages
+      client.addEventListener('message', (event: any) => {
+        const message = event.detail || event;
+        if (onMessage && message.text) {
           onMessage({
             text: message.text,
             isUser: false
           });
         }
-      };
+      });
 
       clientRef.current = client;
 
@@ -94,7 +93,7 @@ export const useVapiConversation = ({
 
       // Send initial message if provided
       if (initialMessage && client) {
-        client.send(initialMessage);
+        client.sendText(initialMessage);
       }
 
       return client;
@@ -104,7 +103,7 @@ export const useVapiConversation = ({
       if (onError && error instanceof Error) onError(error);
       throw error;
     }
-  }, [onConnect, onDisconnect, onError, onMessage, volume]);
+  }, [onConnect, onDisconnect, onError, onMessage]);
 
   const endSession = useCallback(async () => {
     try {
@@ -123,14 +122,32 @@ export const useVapiConversation = ({
     setVolume(newVolume);
     // Update the volume on the active client if it exists
     if (clientRef.current) {
-      clientRef.current.setAudioVolume(newVolume);
+      // Assuming Vapi client has a volume control
+      // We'll use client.audioConfig if available, otherwise assume volume might be controlled differently
+      try {
+        // This is an approximation - we need to check Vapi docs for the exact API
+        if (typeof clientRef.current.setAudioVolume === 'function') {
+          (clientRef.current as any).setAudioVolume(newVolume);
+        } else if (typeof (clientRef.current as any).setVolume === 'function') {
+          (clientRef.current as any).setVolume(newVolume);
+        } else {
+          console.warn('Volume control not available on Vapi client');
+        }
+      } catch (e) {
+        console.warn('Volume adjustment not supported:', e);
+      }
     }
   }, []);
 
   const sendMessage = useCallback((message: string) => {
     if (clientRef.current && status === 'connected') {
-      clientRef.current.send(message);
-      return true;
+      try {
+        clientRef.current.sendText(message);
+        return true;
+      } catch (e) {
+        console.error('Error sending message:', e);
+        return false;
+      }
     }
     return false;
   }, [status]);

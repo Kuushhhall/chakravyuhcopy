@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui-custom/Button";
 import { Card } from "@/components/ui-custom/Card";
-import { Mic, MicOff, VolumeX, Volume2, ArrowLeft, Waveform } from "lucide-react";
+import { Mic, MicOff, VolumeX, Volume2, ArrowLeft, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useVapiConversation } from "@/hooks/useVapiConversation";
 
@@ -142,7 +142,7 @@ export default function VoiceConversation({ apiKey, assistantId }: VoiceConversa
       <div className="relative w-24 h-24">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center z-10">
-            <Waveform className="h-8 w-8 text-primary animate-pulse" />
+            <Activity className="h-8 w-8 text-primary animate-pulse" />
           </div>
         </div>
         
