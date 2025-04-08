@@ -37,50 +37,55 @@ export const useVapiConversation = ({
     try {
       setStatus('connecting');
 
-      // Create a new Vapi instance
-      const client = new Vapi({
-        apiKey,
-        assistantId,
-        logger: { logLevel: 'debug' },
-        audio: {
-          autoPlay: true,
-          volume: volume,
-        },
-        onAgentStart: () => {
-          setIsSpeaking(true);
-        },
-        onAgentStop: () => {
-          setIsSpeaking(false);
-        },
-        onError: (error: Error) => {
-          console.error('Vapi error:', error);
-          if (onError) onError(error);
-        },
-        onConnect: () => {
-          setStatus('connected');
-          if (onConnect) onConnect();
-        },
-        onDisconnect: () => {
-          setStatus('disconnected');
-          if (onDisconnect) onDisconnect();
-        },
-        onTranscription: (transcript: { text: string }) => {
-          if (onMessage) {
-            onMessage({
-              text: transcript.text,
-              isUser: true
-            });
-          }
-        },
-        onMessage: (message: { text: string }) => {
-          if (onMessage) {
-            onMessage({
-              text: message.text,
-              isUser: false
-            });
-          }
+      // For Vapi.ai, we need to pass configuration directly
+      const client = new Vapi(apiKey, assistantId);
+      
+      // Configure client options
+      client.setLogLevel('debug');
+      client.setAudioPlayback(true);
+      client.setAudioVolume(volume);
+      
+      // Set up event handlers
+      client.onAgentStart = () => {
+        setIsSpeaking(true);
+      };
+      
+      client.onAgentStop = () => {
+        setIsSpeaking(false);
+      };
+      
+      client.onError = (error: Error) => {
+        console.error('Vapi error:', error);
+        if (onError) onError(error);
+      };
+      
+      client.onConnect = () => {
+        setStatus('connected');
+        if (onConnect) onConnect();
+      };
+      
+      client.onDisconnect = () => {
+        setStatus('disconnected');
+        if (onDisconnect) onDisconnect();
+      };
+      
+      client.onTranscription = (transcript: { text: string }) => {
+        if (onMessage) {
+          onMessage({
+            text: transcript.text,
+            isUser: true
+          });
         }
-      });
+      };
+      
+      client.onMessage = (message: { text: string }) => {
+        if (onMessage) {
+          onMessage({
+            text: message.text,
+            isUser: false
+          });
+        }
+      };
 
       clientRef.current = client;
 
@@ -116,9 +121,10 @@ export const useVapiConversation = ({
 
   const adjustVolume = useCallback((newVolume: number) => {
     setVolume(newVolume);
-    // We can't directly access client.options.audio.volume based on the errors
-    // Instead, we'll recreate the client with the new volume if needed
-    // Or use alternative methods provided by the Vapi SDK
+    // Update the volume on the active client if it exists
+    if (clientRef.current) {
+      clientRef.current.setAudioVolume(newVolume);
+    }
   }, []);
 
   const sendMessage = useCallback((message: string) => {
