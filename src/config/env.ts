@@ -8,5 +8,11 @@ export const DEFAULT_ASSISTANT_ID = import.meta.env.VITE_VAPI_ASSISTANT_ID || '0
 export const VAPI_VOICE_ID = import.meta.env.VITE_VAPI_VOICE_ID || 'echo';
 export const VAPI_LANGUAGE = import.meta.env.VITE_VAPI_LANGUAGE || 'en-US';
 
-// Check if Vapi is configured
+// ElevenLabs configuration
+export const ELEVEN_LABS_API_KEY = import.meta.env.VITE_ELEVEN_LABS_API_KEY || '';
+export const ELEVEN_LABS_VOICE_ID = import.meta.env.VITE_ELEVEN_LABS_VOICE_ID || 'm5qndnI7u4OAdXhH0Mr5';
+export const ELEVEN_LABS_MODEL_ID = import.meta.env.VITE_ELEVEN_LABS_MODEL_ID || 'eleven_multilingual_v2';
+
+// Check if services are configured
 export const isVapiConfigured = !!VAPI_API_KEY;
+export const isElevenLabsConfigured = !!ELEVEN_LABS_API_KEY;

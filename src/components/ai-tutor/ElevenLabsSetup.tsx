@@ -1,128 +1,109 @@
-
-import { useState } from "react";
-import { Button } from "@/components/ui-custom/Button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui-custom/Card";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { useEffect, useRef, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { ELEVEN_LABS_API_KEY, ELEVEN_LABS_VOICE_ID, ELEVEN_LABS_MODEL_ID } from '@/config/env';
 
 interface ElevenLabsSetupProps {
-  onSetupComplete: (apiKey: string) => void;
+  onSpeechStart?: () => void;
+  onSpeechEnd?: () => void;
+  onError?: (error: Error) => void;
+  children: (props: {
+    generateSpeech: (text: string) => Promise<void>;
+    isSpeaking: boolean;
+    isMuted: boolean;
+    toggleMute: () => void;
+  }) => React.ReactNode;
 }
 
-export function ElevenLabsSetup({ onSetupComplete }: ElevenLabsSetupProps) {
-  const [apiKey, setApiKey] = useState("");
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+export function ElevenLabsSetup({ 
+  onSpeechStart, 
+  onSpeechEnd, 
+  onError,
+  children 
+}: ElevenLabsSetupProps) {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!apiKey.trim()) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your Eleven Labs API key",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      audioRef.current = new Audio();
     }
-    
-    setIsLoading(true);
-    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+    };
+  }, []);
+
+  const generateSpeech = async (text: string) => {
     try {
-      // Store in localStorage for this session
-      localStorage.setItem("elevenLabsApiKey", apiKey);
-      
-      toast({
-        title: "Success",
-        description: "API key saved successfully",
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVEN_LABS_VOICE_ID}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': ELEVEN_LABS_API_KEY,
+        },
+        body: JSON.stringify({
+          text,
+          model_id: ELEVEN_LABS_MODEL_ID,
+          voice_settings: {
+            stability: 0.7,
+            similarity_boost: 0.9,
+            style: 0.8,
+            speaker_boost: true
+          },
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate speech');
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
       
-      onSetupComplete(apiKey);
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.muted = isMuted;
+        audioRef.current.play();
+        setIsSpeaking(true);
+        onSpeechStart?.();
+        
+        audioRef.current.onended = () => {
+          setIsSpeaking(false);
+          onSpeechEnd?.();
+          URL.revokeObjectURL(audioUrl);
+        };
+      }
     } catch (error) {
-      console.error("Error saving API key:", error);
+      console.error('Speech generation error:', error);
+      const err = error instanceof Error ? error : new Error('Failed to generate speech');
+      onError?.(err);
       toast({
-        title: "Error",
-        description: "Failed to save API key",
-        variant: "destructive",
+        title: 'Speech Error',
+        description: err.message,
+        variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const toggleMute = () => {
+    if (audioRef.current) {
+      audioRef.current.muted = !audioRef.current.muted;
+      setIsMuted(audioRef.current.muted);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center">Eleven Labs Setup</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <p className="mb-4 text-sm text-muted-foreground">
-                To enable voice conversation, please enter your Eleven Labs API key.
-                You can find or create your API key in the{" "}
-                <a 
-                  href="https://elevenlabs.io/account"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline"
-                >
-                  Eleven Labs dashboard
-                </a>.
-              </p>
-              
-              <div className="relative">
-                <Input
-                  type={showApiKey ? "text" : "password"}
-                  placeholder="Enter your Eleven Labs API key"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                >
-                  {showApiKey ? (
-                    <EyeOffIcon className="h-4 w-4" />
-                  ) : (
-                    <EyeIcon className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              
-              <p className="mt-2 text-xs text-muted-foreground">
-                Your API key will be stored locally in your browser and not shared with our servers.
-              </p>
-            </div>
-            
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? "Saving..." : "Save API Key"}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center text-xs text-muted-foreground">
-          <p>
-            Don't have an Eleven Labs account?{" "}
-            <a 
-              href="https://elevenlabs.io/sign-up"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline"
-            >
-              Sign up here
-            </a>
-          </p>
-        </CardFooter>
-      </Card>
-    </div>
+    <>
+      {children({
+        generateSpeech,
+        isSpeaking,
+        isMuted,
+        toggleMute
+      })}
+    </>
   );
 }
