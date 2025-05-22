@@ -1,22 +1,52 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ELEVEN_LABS_API_KEY, ELEVEN_LABS_VOICE_ID, ELEVEN_LABS_MODEL_ID } from '@/config/env';
 
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
+
 interface SpeechRecognition extends EventTarget {
-  new(): SpeechRecognition;
   continuous: boolean;
   interimResults: boolean;
   lang: string;
   start(): void;
   stop(): void;
-  onresult: (event: any) => void;
-  onerror: (event: any) => void;
+  abort(): void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onstart: () => void;
+  onend: () => void;
 }
 
-declare global {
-  interface Window {
-    SpeechRecognition: SpeechRecognition;
-    webkitSpeechRecognition: SpeechRecognition;
-  }
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
 }
 
 interface Message {
@@ -31,7 +61,8 @@ interface ElevenLabsConversationOptions {
   onTranscript?: (text: string) => void;
   onMessage?: (message: Message) => void;
   onError?: (error: Error) => void;
-  initialMessage?: string;
+  systemPrompt?: string;
+  agentId?: string;
 }
 
 export function useElevenLabsConversation(options: ElevenLabsConversationOptions = {}) {
@@ -42,7 +73,7 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [error, setError] = useState<Error | null>(null);
-  const [hasWelcomed, setHasWelcomed] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -101,6 +132,7 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
       
       if (audioRef.current) {
         audioRef.current.src = audioUrl;
+        audioRef.current.muted = isMuted;
         audioRef.current.play();
         setIsSpeaking(true);
         options.onSpeechStart?.();
@@ -112,6 +144,7 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
         };
       }
     } catch (err) {
+      console.error('Speech generation error:', err);
       const error = err instanceof Error ? err : new Error('Speech generation failed');
       setError(error);
       options.onError?.(error);
@@ -124,6 +157,10 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
     try {
       setIsActive(true);
       setError(null);
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+      };
 
       recognitionRef.current.onresult = (event: any) => {
         const transcript = Array.from(event.results)
@@ -162,11 +199,15 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
         options.onError?.(error);
       };
 
+      recognitionRef.current.onend = () => setIsListening(false);
+
       recognitionRef.current.start();
       setIsListening(true);
 
       // Play welcome message
-      const welcomeMessage = options.initialMessage || "Hello! I'm your AI tutor. What would you like to learn?";
+      const welcomeMessage = options.systemPrompt 
+        ? "Hellooooo Bacchhhooooooooo !! Kaise hoo ? Badhiya ekdam ?"
+        : "Hello! I'm your AI tutor. What would you like to learn about today?";
       const tutorMessage = {
         text: welcomeMessage,
         isUser: false,
@@ -203,6 +244,7 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
   const toggleMute = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.muted = !audioRef.current.muted;
+      setIsMuted(audioRef.current.muted);
       return audioRef.current.muted;
     }
     return false;
@@ -213,7 +255,7 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
     isActive,
     isSpeaking,
     isListening,
-    isMuted: audioRef.current?.muted || false,
+    isMuted,
     currentSpeech: messages.filter(m => !m.isUser).map(m => m.text).join(' '),
     messages,
     currentTranscript,

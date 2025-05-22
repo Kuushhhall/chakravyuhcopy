@@ -3,31 +3,86 @@ import { Mic, VolumeX, Volume2, X, Loader2, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useElevenLabsConversation } from '@/hooks/useElevenLabsConversation';
-import { CircularWaveform } from '@/components/ai-tutor/CircularWaveform';
-import { TeacherSelection } from '@/components/ai-tutor/TeacherSelection';
+import { ALAKH_PANDEY_PROMPT } from '@/constants/personas';
 import { WhiteboardCanvas } from '@/components/ai-tutor/WhiteboardCanvas';
-import { teacherProfiles } from '@/data/teacherProfiles';
+import { CircularWaveform } from '@/components/ai-tutor/CircularWaveform';
+import { TeacherAvatar } from '@/components/ai-tutor/TeacherAvatar';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { Container } from '@/components/ui/container';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { isElevenLabsConfigured } from "@/config/env";
 
 export default function AITutorPage() {
   const { toast } = useToast();
+  interface Message {
+    text: string;
+    isUser: boolean;
+  }
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isSessionActive, setIsSessionActive] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
   
-  // Format session duration as MM:SS
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  const {
+    isConnected: isElevenLabsConnected,
+    isActive: isSessionActive,
+    isSpeaking,
+    isListening,
+    isMuted,
+    currentSpeech,
+    error: elevenLabsError,
+    startSession,
+    endSession,
+    toggleMute,
+    generateSpeech
+  } = useElevenLabsConversation({
+    systemPrompt: ALAKH_PANDEY_PROMPT,
+    onSpeechStart: () => {
+      console.log('AI started speaking');
+    },
+    onSpeechEnd: () => {
+      console.log('AI stopped speaking');
+      // Add motivational closing phrase
+      if (messages.length > 2) {
+        const motivationalPhrases = [
+          "Beta, aaj bahut accha padh liya! Kal aur behtar karenge!",
+          "Ek din me nahi hota, regular practice karo!",
+          "Tension lene ka nahi, sirf samajhne ka!"
+        ];
+        const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+        setMessages(prev => [...prev, { text: randomPhrase, isUser: false }]);
+      }
+    },
+    onTranscript: (text) => {
+      setMessages(prev => [...prev, { text, isUser: true }]);
+    },
+    onMessage: (message) => {
+      if (!message.isUser) {
+        setMessages(prev => [...prev, { text: message.text, isUser: false }]);
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Kuch technical issue aa gaya, thoda wait karo!',
+        variant: 'destructive',
+      });
+      setIsConnecting(false);
+    },
+  });
 
   // Handle session timing
   useEffect(() => {
@@ -51,24 +106,35 @@ export default function AITutorPage() {
     return () => clearInterval(interval);
   }, [isSessionActive, sessionStartTime]);
 
-  const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Array<{text: string, isUser: boolean}>>([]);
-
-  const renderMainContent = () => {
-    if (!selectedTeacher) {
-      return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 text-white flex flex-col p-4 md:p-8">
-          <div className="max-w-3xl mx-auto py-12">
-            <h1 className="text-3xl font-bold text-center mb-8">Select Your Tutor</h1>
-            <TeacherSelection 
-              onSelect={(teacherId) => setSelectedTeacher(teacherId)}
-            />
-          </div>
-        </div>
-      );
+  // Enhanced start session with loading state
+  const handleStartSession = async () => {
+    setIsConnecting(true);
+    try {
+      await startSession();
+      toast({
+        title: 'Session Started',
+        description: 'Your AI tutor is ready to help you learn!',
+      });
+    } catch (err) {
+      toast({
+        title: 'Connection Failed',
+        description: 'Unable to start your tutoring session. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsConnecting(false);
     }
+  };
 
-    return (
+  // Format session duration as MM:SS
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <PageLayout showFooter={false}>
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 text-white flex flex-col p-4 md:p-8">
         {/* Header with status indicators */}
         <header className="w-full mb-6 flex items-center justify-between">
@@ -77,20 +143,31 @@ export default function AITutorPage() {
               variant="ghost" 
               size="icon" 
               className="rounded-full hover:bg-gray-800"
-              onClick={() => setSelectedTeacher(null)}
+              aria-label="Go back"
+              onClick={() => navigate('/dashboard')}
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">AI {teacherProfiles.find(t => t.id === selectedTeacher)?.subject} Tutor</h1>
-              <p className="text-sm text-gray-400">{teacherProfiles.find(t => t.id === selectedTeacher)?.name}</p>
+              <h1 className="text-xl font-bold">AI Physics Tutor</h1>
+              <p className="text-sm text-gray-400">Learn physics interactively</p>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
             {isSessionActive && (
-              <Badge variant="outline" className="px-3 py-1 border-2 border-gray-600 bg-gray-600/10 text-gray-400">
-                Session Active
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "px-3 py-1 border-2 transition-colors duration-300",
+                  isListening ? "border-green-500 bg-green-500/10 text-green-400" : 
+                  isSpeaking ? "border-blue-500 bg-blue-500/10 text-blue-400" : 
+                  "border-gray-600 bg-gray-600/10 text-gray-400"
+                )}
+              >
+                {isListening ? "Listening..." : 
+                 isSpeaking ? "Speaking..." : 
+                 "Session Active"}
               </Badge>
             )}
             
@@ -128,11 +205,60 @@ export default function AITutorPage() {
             </CardContent>
           </Card>
 
-          {/* Session controls */}
+          {/* Session information and recent messages */}
           <Card className="col-span-1 border-gray-700 bg-gray-800/30 backdrop-blur shadow-xl overflow-hidden">
             <CardHeader className="border-b border-gray-700 pb-3 pt-4">
-              <CardTitle className="text-lg font-medium">Session Controls</CardTitle>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-medium">Session Information</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    {isSessionActive 
+                      ? "Your AI tutor is actively listening and teaching"
+                      : "Start a session to begin learning"}
+                  </CardDescription>
+                </div>
+                <div className="flex-shrink-0">
+                  <TeacherAvatar 
+                    teacherName="Alakh Pandey" 
+                    teacherImage="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100&q=80" 
+                    isSpeaking={isSpeaking} 
+                    isListening={isListening} 
+                  />
+                </div>
+              </div>
             </CardHeader>
+            <CardContent className="py-4 px-0">
+              {messages.length > 0 ? (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-400 px-6">Recent Interactions</h3>
+                  <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2 px-6">
+                    {messages.slice(-5).map((msg, idx) => (
+                      <div 
+                        key={idx}
+                        className={cn(
+                          "p-3 rounded-lg",
+                          msg.isUser 
+                            ? "bg-blue-950/30 border border-blue-800/50" 
+                            : "bg-gray-800/50 border border-gray-700/50"
+                        )}
+                      >
+                        <p className="text-sm">{msg.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : isSessionActive ? (
+                <div className="py-8 text-center text-gray-400 px-6">
+                  <p>Speak to your AI tutor to get started</p>
+                  <p className="mt-2 text-sm">Try asking a physics question</p>
+                </div>
+              ) : (
+                <div className="py-12 text-center text-gray-400 px-6">
+                  <p>No active session</p>
+                  <p className="mt-2 text-sm">Click the button below to start learning</p>
+                </div>
+              )}
+            </CardContent>
             <CardFooter className="border-t border-gray-700 pt-4 flex justify-center">
               {isSessionActive ? (
                 <div className="flex gap-3 w-full justify-center">
@@ -140,25 +266,27 @@ export default function AITutorPage() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full h-10 w-10 border-gray-600 hover:bg-gray-700 hover:text-white"
-                    onClick={toggleMute}
-                  >
-                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                  </Button>
+                          variant="outline"
+                          size="icon"
+                          onClick={toggleMute}
+                          className="rounded-full h-10 w-10 border-gray-600 hover:bg-gray-700 hover:text-white transition-colors"
+                        >
+                          {isMuted ? 
+                            <VolumeX className="h-5 w-5" /> : 
+                            <Volume2 className="h-5 w-5" />
+                          }
+                        </Button>
                       </TooltipTrigger>
-                      <TooltipContent>Mute AI</TooltipContent>
+                      <TooltipContent>
+                        {isMuted ? "Unmute AI" : "Mute AI"}
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                   
                   <Button 
                     variant="destructive"
-                    onClick={() => {
-                      setIsSessionActive(false);
-                      endSession();
-                    }}
-                    className="rounded-full px-4 py-2 flex-1 bg-red-600 hover:bg-red-700"
+                    onClick={endSession}
+                    className="rounded-full px-4 py-2 flex-1 bg-red-600 hover:bg-red-700 transition-colors"
                   >
                     <X className="h-5 w-5 mr-2" />
                     End Session
@@ -166,10 +294,10 @@ export default function AITutorPage() {
                 </div>
               ) : (
                 <Button 
-                  onClick={() => setIsSessionActive(true)}
+                  onClick={handleStartSession}
                   disabled={isConnecting}
                   size="lg"
-                  className="rounded-full px-6 py-6 shadow-xl bg-indigo-600 hover:bg-indigo-700 w-full max-w-xs"
+                  className="rounded-full px-6 py-6 shadow-xl bg-indigo-600 hover:bg-indigo-700 transition-colors w-full max-w-xs"
                 >
                   {isConnecting ? (
                     <>
@@ -187,53 +315,20 @@ export default function AITutorPage() {
             </CardFooter>
           </Card>
         </div>
+        
+        {/* Status indicator - floating only on mobile */}
+        <div className="lg:hidden fixed bottom-6 right-6 z-50">
+          {isSessionActive && (
+            <div className="bg-gray-800/80 backdrop-blur-sm rounded-full p-1 shadow-lg">
+              <CircularWaveform 
+                isActive={isListening || isSpeaking} 
+                size={40} 
+                color={isListening ? "#22c55e" : "#3b82f6"} 
+              />
+            </div>
+          )}
+        </div>
       </div>
-    );
-  };
-
-  const {
-    isReady,
-    isActive,
-    isSpeaking,
-    isListening,
-    isMuted,
-    currentSpeech,
-    messages: voiceMessages,
-    error,
-    startSession,
-    endSession,
-    generateSpeech,
-    toggleMute
-  } = useElevenLabsConversation({
-    onSpeechStart: () => setIsSessionActive(true),
-    onSpeechEnd: () => setIsSessionActive(false),
-    onError: (error) => toast({
-      title: 'Error',
-      description: error.message,
-      variant: 'destructive',
-    }),
-    onMessage: (message) => {
-      setMessages(prev => [...prev, {
-        text: message.text,
-        isUser: message.isUser
-      }]);
-    }
-  });
-
-  useEffect(() => {
-    if (isSessionActive && selectedTeacher && isReady) {
-      const teacher = teacherProfiles.find(t => t.id === selectedTeacher);
-      const welcomeMessage = `Hello! I'm ${teacher?.name}, your ${teacher?.subject} tutor. How can I help you today?`;
-      startSession();
-      generateSpeech(welcomeMessage);
-    }
-  }, [isSessionActive, selectedTeacher, isReady]);
-
-  return (
-    <PageLayout showFooter={false}>
-      <Container className="p-0 max-w-full">
-        {renderMainContent()}
-      </Container>
     </PageLayout>
   );
 }
