@@ -76,7 +76,7 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
   const [isMuted, setIsMuted] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Initialize speech recognition and audio
   useEffect(() => {
@@ -97,7 +97,11 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.log('Error stopping recognition:', e);
+        }
       }
       if (audioRef.current) {
         audioRef.current.pause();
@@ -158,64 +162,53 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
       setIsActive(true);
       setError(null);
 
-      recognitionRef.current.onstart = () => {
-        setIsListening(true);
-      };
+      if (recognitionRef.current) {
+        recognitionRef.current.onstart = () => {
+          setIsListening(true);
+        };
 
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0].transcript)
-          .join('');
-          
-        if (event.results[0].isFinal) {
-          const userMessage = {
-            text: transcript,
-            isUser: true,
-            timestamp: Date.now()
-          };
-          setMessages(prev => [...prev, userMessage]);
-          setCurrentTranscript(transcript);
-          options.onTranscript?.(transcript);
-          options.onMessage?.(userMessage);
-
-          // Generate AI response to user message
-          if (transcript.trim().length > 0) {
-            const aiResponse = `I heard you say: "${transcript}". What would you like to learn next?`;
-            const aiMessage = {
-              text: aiResponse,
-              isUser: false,
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          const transcript = Array.from(event.results)
+            .map((result: SpeechRecognitionResult) => result[0].transcript)
+            .join('');
+            
+          if (event.results[0].isFinal) {
+            const userMessage = {
+              text: transcript,
+              isUser: true,
               timestamp: Date.now()
             };
-            setMessages(prev => [...prev, aiMessage]);
-            generateSpeech(aiResponse);
-            options.onMessage?.(aiMessage);
+            setMessages(prev => [...prev, userMessage]);
+            setCurrentTranscript(transcript);
+            options.onTranscript?.(transcript);
+            options.onMessage?.(userMessage);
+
+            // Generate AI response to user message
+            if (transcript.trim().length > 0) {
+              const aiResponse = `I heard you say: "${transcript}". What would you like to learn next?`;
+              const aiMessage = {
+                text: aiResponse,
+                isUser: false,
+                timestamp: Date.now()
+              };
+              setMessages(prev => [...prev, aiMessage]);
+              generateSpeech(aiResponse);
+              options.onMessage?.(aiMessage);
+            }
           }
-        }
-      };
+        };
 
-      recognitionRef.current.onerror = (event: any) => {
-        const error = new Error(event.error);
-        setError(error);
-        options.onError?.(error);
-      };
+        recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+          const error = new Error(event.error);
+          setError(error);
+          options.onError?.(error);
+        };
 
-      recognitionRef.current.onend = () => setIsListening(false);
+        recognitionRef.current.onend = () => setIsListening(false);
 
-      recognitionRef.current.start();
-      setIsListening(true);
-
-      // Play welcome message
-      const welcomeMessage = options.systemPrompt 
-        ? "Hellooooo Bacchhhooooooooo !! Kaise hoo ? Badhiya ekdam ?"
-        : "Hello! I'm your AI tutor. What would you like to learn about today?";
-      const tutorMessage = {
-        text: welcomeMessage,
-        isUser: false,
-        timestamp: Date.now()
-      };
-      setMessages([tutorMessage]);
-      await generateSpeech(welcomeMessage);
-      options.onMessage?.(tutorMessage);
+        recognitionRef.current.start();
+        setIsListening(true);
+      }
 
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to start session');
@@ -223,14 +216,21 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
       options.onError?.(error);
       setIsActive(false);
     }
+    
+    return true;
   }, [isReady, isActive, options]);
 
   const endSession = useCallback(() => {
     if (!isActive) return;
 
     try {
-      recognitionRef.current?.stop();
-      audioRef.current?.pause();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       setIsActive(false);
       setIsListening(false);
       setIsSpeaking(false);

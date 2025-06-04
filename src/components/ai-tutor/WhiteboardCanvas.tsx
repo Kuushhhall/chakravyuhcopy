@@ -124,7 +124,7 @@ export function WhiteboardCanvas({ text, isRendering, onRenderComplete }: Whiteb
               }
               
               ctx.fillText(word, x, y);
-              x += metrics.width;
+              x += metrics.width + ctx.measureText(' ').width;
             });
           }
         }
@@ -140,7 +140,7 @@ export function WhiteboardCanvas({ text, isRendering, onRenderComplete }: Whiteb
   }, [renderedWords]);
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className="relative w-full h-full overflow-hidden bg-gray-900">
       <canvas
         ref={canvasRef}
         className="w-full h-full bg-transparent"

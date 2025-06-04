@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Mic, VolumeX, Volume2, X, Loader2, ChevronLeft } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Mic, VolumeX, Volume2, X, Loader2, ChevronLeft, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useElevenLabsConversation } from '@/hooks/useElevenLabsConversation';
@@ -24,20 +24,28 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from 'react-router-dom';
 
 export default function AITutorPage() {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  
   interface Message {
     text: string;
     isUser: boolean;
+    timestamp: number;
   }
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnecting, setIsConnecting] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
+  const [inputMessage, setInputMessage] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const {
-    isConnected: isElevenLabsConnected,
+    isReady,
     isActive: isSessionActive,
     isSpeaking,
     isListening,
@@ -55,23 +63,13 @@ export default function AITutorPage() {
     },
     onSpeechEnd: () => {
       console.log('AI stopped speaking');
-      // Add motivational closing phrase
-      if (messages.length > 2) {
-        const motivationalPhrases = [
-          "Beta, aaj bahut accha padh liya! Kal aur behtar karenge!",
-          "Ek din me nahi hota, regular practice karo!",
-          "Tension lene ka nahi, sirf samajhne ka!"
-        ];
-        const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
-        setMessages(prev => [...prev, { text: randomPhrase, isUser: false }]);
-      }
     },
     onTranscript: (text) => {
-      setMessages(prev => [...prev, { text, isUser: true }]);
+      addMessage(text, true);
     },
     onMessage: (message) => {
       if (!message.isUser) {
-        setMessages(prev => [...prev, { text: message.text, isUser: false }]);
+        addMessage(message.text, false);
       }
     },
     onError: (error) => {
@@ -83,6 +81,11 @@ export default function AITutorPage() {
       setIsConnecting(false);
     },
   });
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   // Handle session timing
   useEffect(() => {
@@ -106,11 +109,42 @@ export default function AITutorPage() {
     return () => clearInterval(interval);
   }, [isSessionActive, sessionStartTime]);
 
+  // Add a new message to the conversation
+  const addMessage = (text: string, isUser: boolean) => {
+    setMessages(prev => [...prev, { 
+      text, 
+      isUser, 
+      timestamp: Date.now() 
+    }]);
+  };
+
+  // Handle sending a text message
+  const handleSendMessage = () => {
+    if (!inputMessage.trim() || !isSessionActive) return;
+    
+    addMessage(inputMessage, true);
+    
+    // In a real implementation, this would trigger the AI response
+    // For now, we'll simulate it with the generateSpeech function
+    setTimeout(() => {
+      const aiResponse = `I heard you type: "${inputMessage}". What would you like to learn next?`;
+      addMessage(aiResponse, false);
+      generateSpeech(aiResponse);
+    }, 1000);
+    
+    setInputMessage('');
+  };
+
   // Enhanced start session with loading state
   const handleStartSession = async () => {
     setIsConnecting(true);
     try {
       await startSession();
+      
+      // Add welcome message
+      const welcomeMessage = "Hellooooo Bacchhhooooooooo !! Kaise hoo ? Badhiya ekdam ? I'm your AI Physics tutor. What would you like to learn about today?";
+      addMessage(welcomeMessage, false);
+      
       toast({
         title: 'Session Started',
         description: 'Your AI tutor is ready to help you learn!',
@@ -206,7 +240,7 @@ export default function AITutorPage() {
           </Card>
 
           {/* Session information and recent messages */}
-          <Card className="col-span-1 border-gray-700 bg-gray-800/30 backdrop-blur shadow-xl overflow-hidden">
+          <Card className="col-span-1 border-gray-700 bg-gray-800/30 backdrop-blur shadow-xl overflow-hidden flex flex-col">
             <CardHeader className="border-b border-gray-700 pb-3 pt-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -227,24 +261,25 @@ export default function AITutorPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="py-4 px-0">
+            <CardContent className="py-4 px-0 flex-1 overflow-y-auto">
               {messages.length > 0 ? (
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-gray-400 px-6">Recent Interactions</h3>
-                  <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2 px-6">
-                    {messages.slice(-5).map((msg, idx) => (
+                  <h3 className="text-sm font-medium text-gray-400 px-6">Conversation</h3>
+                  <div className="space-y-3 px-6">
+                    {messages.map((msg, idx) => (
                       <div 
                         key={idx}
                         className={cn(
-                          "p-3 rounded-lg",
+                          "p-3 rounded-lg max-w-[90%]",
                           msg.isUser 
-                            ? "bg-blue-950/30 border border-blue-800/50" 
-                            : "bg-gray-800/50 border border-gray-700/50"
+                            ? "bg-blue-950/30 border border-blue-800/50 ml-auto" 
+                            : "bg-gray-800/50 border border-gray-700/50 mr-auto"
                         )}
                       >
                         <p className="text-sm">{msg.text}</p>
                       </div>
                     ))}
+                    <div ref={messagesEndRef} />
                   </div>
                 </div>
               ) : isSessionActive ? (
@@ -259,9 +294,29 @@ export default function AITutorPage() {
                 </div>
               )}
             </CardContent>
-            <CardFooter className="border-t border-gray-700 pt-4 flex justify-center">
+            <CardFooter className="border-t border-gray-700 pt-4">
               {isSessionActive ? (
-                <div className="flex gap-3 w-full justify-center">
+                <div className="flex gap-3 w-full">
+                  <div className="relative flex-1">
+                    <Input
+                      placeholder="Type your message..."
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSendMessage();
+                      }}
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-700"
+                      onClick={handleSendMessage}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -286,7 +341,7 @@ export default function AITutorPage() {
                   <Button 
                     variant="destructive"
                     onClick={endSession}
-                    className="rounded-full px-4 py-2 flex-1 bg-red-600 hover:bg-red-700 transition-colors"
+                    className="rounded-full px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors"
                   >
                     <X className="h-5 w-5 mr-2" />
                     End Session
@@ -297,7 +352,7 @@ export default function AITutorPage() {
                   onClick={handleStartSession}
                   disabled={isConnecting}
                   size="lg"
-                  className="rounded-full px-6 py-6 shadow-xl bg-indigo-600 hover:bg-indigo-700 transition-colors w-full max-w-xs"
+                  className="rounded-full px-6 py-6 shadow-xl bg-indigo-600 hover:bg-indigo-700 transition-colors w-full"
                 >
                   {isConnecting ? (
                     <>
