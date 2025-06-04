@@ -55,7 +55,8 @@ export default function AITutorPage() {
     startSession,
     endSession,
     toggleMute,
-    generateSpeech
+    generateSpeech,
+    sendTextMessage
   } = useElevenLabsConversation({
     systemPrompt: ALAKH_PANDEY_PROMPT,
     onSpeechStart: () => {
@@ -124,13 +125,8 @@ export default function AITutorPage() {
     
     addMessage(inputMessage, true);
     
-    // In a real implementation, this would trigger the AI response
-    // For now, we'll simulate it with the generateSpeech function
-    setTimeout(() => {
-      const aiResponse = `I heard you type: "${inputMessage}". What would you like to learn next?`;
-      addMessage(aiResponse, false);
-      generateSpeech(aiResponse);
-    }, 1000);
+    // Send the message to the AI and get a response
+    sendTextMessage(inputMessage);
     
     setInputMessage('');
   };

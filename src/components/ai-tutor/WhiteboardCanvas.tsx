@@ -62,7 +62,7 @@ export function WhiteboardCanvas({ text, isRendering, onRenderComplete }: Whiteb
             }
             onRenderComplete?.();
           }
-        }, Math.max(100, Math.min(300, 200 - (words[currentIndex]?.length || 0) * 5))); // Dynamic timing based on word length
+        }, Math.max(80, Math.min(200, 150 - (words[currentIndex]?.length || 0) * 5))); // Faster timing for better sync
       }
 
       return () => {
@@ -116,15 +116,17 @@ export function WhiteboardCanvas({ text, isRendering, onRenderComplete }: Whiteb
                 
                 if (currentLine) {
                   ctx.fillText(currentLine, x, y);
-                  x += ctx.measureText(currentLine).width;
+                  x += ctx.measureText(currentLine).width + ctx.measureText(' ').width;
                 }
               } else if (x + metrics.width > canvas.width - 100) {
                 x = 50;
                 y += 40;
+                ctx.fillText(word, x, y);
+                x += metrics.width + ctx.measureText(' ').width;
+              } else {
+                ctx.fillText(word, x, y);
+                x += metrics.width + ctx.measureText(' ').width;
               }
-              
-              ctx.fillText(word, x, y);
-              x += metrics.width + ctx.measureText(' ').width;
             });
           }
         }

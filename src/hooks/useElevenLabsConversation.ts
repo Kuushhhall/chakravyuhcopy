@@ -74,6 +74,7 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [error, setError] = useState<Error | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [currentSpeech, setCurrentSpeech] = useState('');
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -111,6 +112,7 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
 
   const generateSpeech = async (text: string) => {
     try {
+      setCurrentSpeech(text);
       const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVEN_LABS_VOICE_ID}`, {
         method: 'POST',
         headers: {
@@ -250,19 +252,57 @@ export function useElevenLabsConversation(options: ElevenLabsConversationOptions
     return false;
   }, []);
 
+  // Function to send a text message and get AI response
+  const sendTextMessage = useCallback(async (text: string) => {
+    if (!text.trim() || !isActive) return;
+    
+    const userMessage = {
+      text,
+      isUser: true,
+      timestamp: Date.now()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    options.onMessage?.(userMessage);
+    
+    // In a real implementation, this would call an API to get the AI response
+    // For now, we'll simulate it
+    try {
+      const aiResponse = `You asked: "${text}". Let me explain this concept...`;
+      const aiMessage = {
+        text: aiResponse,
+        isUser: false,
+        timestamp: Date.now()
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+      await generateSpeech(aiResponse);
+      options.onMessage?.(aiMessage);
+      
+      return true;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to get AI response');
+      setError(error);
+      options.onError?.(error);
+      return false;
+    }
+  }, [isActive, options]);
+
   return {
     isReady,
+    isConnected: isReady,
     isActive,
     isSpeaking,
     isListening,
     isMuted,
-    currentSpeech: messages.filter(m => !m.isUser).map(m => m.text).join(' '),
+    currentSpeech,
     messages,
     currentTranscript,
     error,
     startSession,
     endSession,
     generateSpeech,
-    toggleMute
+    toggleMute,
+    sendTextMessage
   };
 }
